@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(dotnet --version)",
+      "PowerShell(flutter --version)",
+      "PowerShell(docker --version)",
+      "Bash(dotnet new *)",
+      "Bash(dotnet sln *)",
+      "Bash(dotnet add *)",
+      "Bash(ls -la \"/c/Users/admin/AppData/Local/Temp/claude/C--Users-admin-Desktop-TH-c-t-p-K-app/d443c4bf-05ad-4bf9-b1b8-6907ac39f0dd/tasks/\" | grep b8lkw300g)",
+      "Bash(dotnet build *)",
+      "Bash(dotnet list *)",
+      "Bash(xargs cat)",
+      "Bash(dotnet remove *)",
+      "Bash(powershell -NoProfile -Command 'Get-Process -Name dotnet -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -eq '\\\\'''\\\\'' } | Select-Object Id,StartTime')",
+      "Bash(taskkill //F //IM dotnet.exe //FI \"WINDOWTITLE eq TaskMgmt.API*\")",
+      "Bash(pkill -f \"TaskMgmt.API\")",
+      "Bash(powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 5299 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess\")",
+      "Bash(powershell -NoProfile -Command \"Stop-Process -Id 3184 -Force; Start-Sleep -Seconds 1; Get-NetTCPConnection -LocalPort 5299 -ErrorAction SilentlyContinue\")",
+      "PowerShell(flutter doctor -v)",
+      "PowerShell([Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Write-Output \"---MACHINE---\"; [Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\))",
+      "Bash(ls \"/d/flutter/bin/\" 2>&1 | head -20)",
+      "Bash(sleep 15 && cat /tmp/flutter_run.log)",
+      "Bash(powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 8765 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique\")",
+      "Bash(powershell -NoProfile -Command \"Stop-Process -Id 16088 -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Get-NetTCPConnection -LocalPort 8765 -ErrorAction SilentlyContinue\")",
+      "Bash(rm -rf /c/FlutterPathTest *)",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'dotnet|VBCSCompiler|dart|flutter' } | Select-Object Id,ProcessName,Path)"
+    ]
+  }
+}

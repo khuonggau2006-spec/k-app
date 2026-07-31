@@ -1,0 +1,35 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+  push:
+    branches: [develop, main]
+    paths:
+      - "backend/**"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore TaskMgmt.sln
+
+      - name: Build
+        run: dotnet build TaskMgmt.sln --no-restore -c Release
+
+      - name: Test
+        run: dotnet test TaskMgmt.sln --no-build -c Release --logger "trx"
