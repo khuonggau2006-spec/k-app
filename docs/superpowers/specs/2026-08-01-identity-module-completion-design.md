@@ -68,10 +68,11 @@ Tất cả nằm trong `AuthController` (`api/v1/auth`), mỗi endpoint là 1 Co
 - Set `UsedAtUtc` trên token.
 - **Thu hồi toàn bộ `RefreshToken` đang active của user** (set `RevokedAtUtc`) — đổi mật khẩu phải buộc đăng nhập lại trên mọi thiết bị, đây là hành vi bảo mật khác với Logout thường (mục dưới) và là chủ đích thiết kế.
 
-### `POST /auth/logout` (`[Authorize]`)
+### `POST /auth/logout` (yêu cầu đã đăng nhập — theo `FallbackPolicy` mặc định của API, không cần `[Authorize]` tường minh)
 - Request: `{ refreshToken }`
-- Tìm `RefreshToken` theo chuỗi; nếu không tồn tại hoặc `UserId` không khớp user hiện tại (lấy từ JWT claim) → trả lỗi.
-- Set `RevokedAtUtc` trên đúng token đó — **chỉ thu hồi phiên hiện tại**, không ảnh hưởng các thiết bị khác đang đăng nhập (đúng lựa chọn đã chốt).
+- Tìm `RefreshToken` theo chuỗi **và** `UserId` khớp user hiện tại (lấy từ `ICurrentUserService.UserId`).
+- **Idempotent, luôn thành công**: nếu tìm thấy và đang active → set `RevokedAtUtc`; nếu không tìm thấy (không tồn tại, thuộc user khác, hoặc đã bị revoke/rotate trước đó) → không làm gì, vẫn trả thành công. Mirror đúng convention đã có ở `UnregisterDeviceTokenCommandHandler` (đăng xuất/gỡ token không được phép báo lỗi vì token đã bị rotate ngầm do tab/thiết bị khác tự refresh trước đó là tình huống hợp lệ, không phải lỗi).
+- Chỉ thu hồi đúng token được truyền lên — **không ảnh hưởng các thiết bị khác** đang đăng nhập.
 
 ## 6. Mobile (Flutter)
 
