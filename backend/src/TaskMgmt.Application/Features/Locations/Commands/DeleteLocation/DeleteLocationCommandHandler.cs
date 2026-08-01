@@ -1,12 +1,13 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TaskMgmt.Application.Common.Caching;
 using TaskMgmt.Application.Common.Exceptions;
 using TaskMgmt.Application.Common.Interfaces;
 using TaskMgmt.Domain.Entities;
 
 namespace TaskMgmt.Application.Features.Locations.Commands.DeleteLocation;
 
-public class DeleteLocationCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+public class DeleteLocationCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, ICacheService cache)
     : IRequestHandler<DeleteLocationCommand>
 {
     public async Task Handle(DeleteLocationCommand request, CancellationToken cancellationToken)
@@ -20,5 +21,7 @@ public class DeleteLocationCommandHandler(IApplicationDbContext context, ICurren
         location.UpdatedByUserId = currentUser.UserId;
 
         await context.SaveChangesAsync(cancellationToken);
+        await cache.RemoveAsync(CacheKeys.LocationDetail(location.Id), cancellationToken);
+        await cache.RemoveAsync(CacheKeys.LocationListKey, cancellationToken);
     }
 }

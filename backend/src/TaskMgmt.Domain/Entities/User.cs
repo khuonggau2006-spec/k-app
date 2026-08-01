@@ -13,4 +13,6 @@ public class User : AuditableEntity
 
     public ICollection<TaskAssignee> TaskAssignments { get; set; } = [];
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
+    public ICollection<DeviceToken> DeviceTokens { get; set; } = [];
+    public ICollection<Notification> Notifications { get; set; } = [];
 }

@@ -1,11 +1,12 @@
 using MediatR;
+using TaskMgmt.Application.Common.Caching;
 using TaskMgmt.Application.Common.Interfaces;
 using TaskMgmt.Application.Features.Locations.Common;
 using TaskMgmt.Domain.Entities;
 
 namespace TaskMgmt.Application.Features.Locations.Commands.CreateLocation;
 
-public class CreateLocationCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+public class CreateLocationCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, ICacheService cache)
     : IRequestHandler<CreateLocationCommand, LocationDto>
 {
     public async Task<LocationDto> Handle(CreateLocationCommand request, CancellationToken cancellationToken)
@@ -23,6 +24,7 @@ public class CreateLocationCommandHandler(IApplicationDbContext context, ICurren
 
         context.Locations.Add(location);
         await context.SaveChangesAsync(cancellationToken);
+        await cache.RemoveAsync(CacheKeys.LocationListKey, cancellationToken);
 
         return LocationDto.FromEntity(location);
     }

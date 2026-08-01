@@ -43,6 +43,21 @@ services:
     depends_on:
       - redis
 
+  minio:
+    image: minio/minio:latest
+    container_name: taskmgmt-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: taskmgmt_minio
+      MINIO_ROOT_PASSWORD: taskmgmt_minio_pass
+    command: ["server", "/data", "--console-address", ":9001"]
+    ports:
+      - "9000:9000" # S3 API - chỉ backend .NET gọi tới, client mobile không bao giờ gọi trực tiếp
+      - "9001:9001" # Web console để xem/quản lý bucket lúc dev
+    volumes:
+      - minio_data:/data
+
 volumes:
   postgres_data:
   redis_data:
+  minio_data:

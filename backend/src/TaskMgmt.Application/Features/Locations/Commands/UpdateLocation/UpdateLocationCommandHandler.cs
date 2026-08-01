@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TaskMgmt.Application.Common.Caching;
 using TaskMgmt.Application.Common.Exceptions;
 using TaskMgmt.Application.Common.Interfaces;
 using TaskMgmt.Application.Features.Locations.Common;
@@ -7,7 +8,7 @@ using TaskMgmt.Domain.Entities;
 
 namespace TaskMgmt.Application.Features.Locations.Commands.UpdateLocation;
 
-public class UpdateLocationCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+public class UpdateLocationCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, ICacheService cache)
     : IRequestHandler<UpdateLocationCommand, LocationDto>
 {
     public async Task<LocationDto> Handle(UpdateLocationCommand request, CancellationToken cancellationToken)
@@ -26,6 +27,8 @@ public class UpdateLocationCommandHandler(IApplicationDbContext context, ICurren
         location.UpdatedByUserId = currentUser.UserId;
 
         await context.SaveChangesAsync(cancellationToken);
+        await cache.RemoveAsync(CacheKeys.LocationDetail(location.Id), cancellationToken);
+        await cache.RemoveAsync(CacheKeys.LocationListKey, cancellationToken);
 
         return LocationDto.FromEntity(location);
     }

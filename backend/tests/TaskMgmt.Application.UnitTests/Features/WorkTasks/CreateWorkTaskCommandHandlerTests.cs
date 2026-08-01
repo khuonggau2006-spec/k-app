@@ -15,7 +15,7 @@ public class CreateWorkTaskCommandHandlerTests
         await context.SaveChangesAsync(default);
 
         var currentUser = new FakeCurrentUserService(user.Id, SystemRole.Member);
-        var handler = new CreateWorkTaskCommandHandler(context, currentUser);
+        var handler = new CreateWorkTaskCommandHandler(context, currentUser, new FakeCacheService());
         var command = new CreateWorkTaskCommand("New Task", null, null, null, null);
 
         var result = await handler.Handle(command, default);
@@ -31,7 +31,7 @@ public class CreateWorkTaskCommandHandlerTests
     {
         using var context = TestDbContextFactory.Create();
         var currentUser = new FakeCurrentUserService(null, null);
-        var handler = new CreateWorkTaskCommandHandler(context, currentUser);
+        var handler = new CreateWorkTaskCommandHandler(context, currentUser, new FakeCacheService());
         var command = new CreateWorkTaskCommand("New Task", null, null, null, null);
 
         var result = await handler.Handle(command, default);

@@ -22,6 +22,151 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.Attachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("WorkTaskId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("StorageKey")
+                        .IsUnique();
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("WorkTaskId");
+
+                    b.ToTable("Attachments", (string)null);
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("WorkTaskId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("WorkTaskId");
+
+                    b.ToTable("Comments", (string)null);
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.CommentMention", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CommentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MentionedUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MentionedUserId");
+
+                    b.HasIndex("CommentId", "MentionedUserId")
+                        .IsUnique();
+
+                    b.ToTable("CommentMentions", (string)null);
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.DeviceToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("LastUsedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Platform")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DeviceTokens", (string)null);
+                });
+
             modelBuilder.Entity("TaskMgmt.Domain.Entities.Location", b =>
                 {
                     b.Property<Guid>("Id")
@@ -70,6 +215,51 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                     b.HasIndex("UpdatedByUserId");
 
                     b.ToTable("Locations", (string)null);
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("ReadAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("WorkTaskId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkTaskId");
+
+                    b.HasIndex("UserId", "IsRead");
+
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("TaskMgmt.Domain.Entities.RefreshToken", b =>
@@ -138,6 +328,57 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("TaskAssignees", (string)null);
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.TaskHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("FieldName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NewValue")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid?>("TargetUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("WorkTaskId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActionType");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("TargetUserId");
+
+                    b.HasIndex("WorkTaskId");
+
+                    b.ToTable("TaskHistories", (string)null);
                 });
 
             modelBuilder.Entity("TaskMgmt.Domain.Entities.User", b =>
@@ -209,11 +450,17 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("DueDateUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("DueSoonReminderSentAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<Guid?>("LocationId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("OverdueReminderSentAtUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("ParentTaskId")
                         .HasColumnType("uuid");
@@ -249,6 +496,82 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                     b.ToTable("WorkTasks", (string)null);
                 });
 
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.Attachment", b =>
+                {
+                    b.HasOne("TaskMgmt.Domain.Entities.User", "Uploader")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TaskMgmt.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TaskMgmt.Domain.Entities.WorkTask", "WorkTask")
+                        .WithMany("Attachments")
+                        .HasForeignKey("WorkTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Uploader");
+
+                    b.Navigation("WorkTask");
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.Comment", b =>
+                {
+                    b.HasOne("TaskMgmt.Domain.Entities.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TaskMgmt.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TaskMgmt.Domain.Entities.WorkTask", "WorkTask")
+                        .WithMany("Comments")
+                        .HasForeignKey("WorkTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("WorkTask");
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.CommentMention", b =>
+                {
+                    b.HasOne("TaskMgmt.Domain.Entities.Comment", "Comment")
+                        .WithMany("Mentions")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TaskMgmt.Domain.Entities.User", "MentionedUser")
+                        .WithMany()
+                        .HasForeignKey("MentionedUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Comment");
+
+                    b.Navigation("MentionedUser");
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.DeviceToken", b =>
+                {
+                    b.HasOne("TaskMgmt.Domain.Entities.User", "User")
+                        .WithMany("DeviceTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TaskMgmt.Domain.Entities.Location", b =>
                 {
                     b.HasOne("TaskMgmt.Domain.Entities.User", null)
@@ -267,6 +590,24 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ParentLocation");
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("TaskMgmt.Domain.Entities.User", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TaskMgmt.Domain.Entities.WorkTask", "WorkTask")
+                        .WithMany()
+                        .HasForeignKey("WorkTaskId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+
+                    b.Navigation("WorkTask");
                 });
 
             modelBuilder.Entity("TaskMgmt.Domain.Entities.RefreshToken", b =>
@@ -295,6 +636,31 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+
+                    b.Navigation("WorkTask");
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.TaskHistory", b =>
+                {
+                    b.HasOne("TaskMgmt.Domain.Entities.User", "Actor")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TaskMgmt.Domain.Entities.User", "Target")
+                        .WithMany()
+                        .HasForeignKey("TargetUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TaskMgmt.Domain.Entities.WorkTask", "WorkTask")
+                        .WithMany("Histories")
+                        .HasForeignKey("WorkTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Actor");
+
+                    b.Navigation("Target");
 
                     b.Navigation("WorkTask");
                 });
@@ -339,6 +705,11 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                     b.Navigation("ParentTask");
                 });
 
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.Comment", b =>
+                {
+                    b.Navigation("Mentions");
+                });
+
             modelBuilder.Entity("TaskMgmt.Domain.Entities.Location", b =>
                 {
                     b.Navigation("ChildLocations");
@@ -348,6 +719,10 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TaskMgmt.Domain.Entities.User", b =>
                 {
+                    b.Navigation("DeviceTokens");
+
+                    b.Navigation("Notifications");
+
                     b.Navigation("RefreshTokens");
 
                     b.Navigation("TaskAssignments");
@@ -356,6 +731,12 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("TaskMgmt.Domain.Entities.WorkTask", b =>
                 {
                     b.Navigation("Assignees");
+
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Comments");
+
+                    b.Navigation("Histories");
 
                     b.Navigation("SubTasks");
                 });

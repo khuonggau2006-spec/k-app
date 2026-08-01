@@ -4,9 +4,15 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/network/api_exception.dart';
+import '../../../attachments/presentation/providers/attachment_provider.dart';
+import '../../../attachments/presentation/widgets/attachment_list_section.dart';
+import '../../../comments/presentation/providers/comment_provider.dart';
+import '../../../comments/presentation/widgets/comment_list_section.dart';
 import '../../../locations/presentation/providers/location_provider.dart';
 import '../../../task_assignees/presentation/providers/task_assignee_provider.dart';
 import '../../../task_assignees/presentation/widgets/assignee_list_section.dart';
+import '../../../task_histories/presentation/providers/task_history_provider.dart';
+import '../../../task_histories/presentation/widgets/task_history_timeline_section.dart';
 import '../../domain/entities/work_task.dart';
 import '../providers/work_task_provider.dart';
 import '../widgets/subtask_list_section.dart';
@@ -73,6 +79,9 @@ class WorkTaskDetailScreen extends ConsumerWidget {
             ref.invalidate(taskDetailProvider(taskId));
             ref.invalidate(taskAssigneesProvider(taskId));
             ref.invalidate(taskChildrenProvider(taskId));
+            ref.invalidate(commentsProvider(taskId));
+            ref.invalidate(attachmentsProvider(taskId));
+            ref.invalidate(taskHistoryProvider(taskId));
           },
           child: ListView(
             padding: const EdgeInsets.all(16),
@@ -82,6 +91,12 @@ class WorkTaskDetailScreen extends ConsumerWidget {
               AssigneeListSection(taskId: taskId),
               const SizedBox(height: 16),
               SubtaskListSection(taskId: taskId),
+              const SizedBox(height: 16),
+              CommentListSection(taskId: taskId),
+              const SizedBox(height: 16),
+              AttachmentListSection(taskId: taskId),
+              const SizedBox(height: 16),
+              TaskHistoryTimelineSection(taskId: taskId),
             ],
           ),
         ),

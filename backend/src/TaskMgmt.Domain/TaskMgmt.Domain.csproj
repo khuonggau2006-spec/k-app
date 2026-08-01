@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Chỉ dùng interface đánh dấu INotification (không có phụ thuộc hạ tầng) để domain event
+         có thể publish thẳng qua MediatR mà không cần một lớp bọc riêng ở Application. -->
+    <PackageReference Include="MediatR" Version="14.2.0" />
+  </ItemGroup>
+
 </Project>

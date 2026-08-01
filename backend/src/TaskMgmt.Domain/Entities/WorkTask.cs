@@ -11,6 +11,11 @@ public class WorkTask : AuditableEntity
     public DateTimeOffset? DueDateUtc { get; set; }
     public bool IsActive { get; set; } = true;
 
+    // Đánh dấu đã gửi nhắc hạn để SendDueSoonReminderJob/SendOverdueReminderJob không gửi
+    // trùng lặp mỗi lần job chạy. Reset về null khi DueDateUtc đổi (xem UpdateWorkTaskCommandHandler).
+    public DateTimeOffset? DueSoonReminderSentAtUtc { get; set; }
+    public DateTimeOffset? OverdueReminderSentAtUtc { get; set; }
+
     public Guid? ParentTaskId { get; set; }
     public WorkTask? ParentTask { get; set; }
     public ICollection<WorkTask> SubTasks { get; set; } = [];
@@ -19,4 +24,7 @@ public class WorkTask : AuditableEntity
     public Location? Location { get; set; }
 
     public ICollection<TaskAssignee> Assignees { get; set; } = [];
+    public ICollection<Comment> Comments { get; set; } = [];
+    public ICollection<Attachment> Attachments { get; set; } = [];
+    public ICollection<TaskHistory> Histories { get; set; } = [];
 }

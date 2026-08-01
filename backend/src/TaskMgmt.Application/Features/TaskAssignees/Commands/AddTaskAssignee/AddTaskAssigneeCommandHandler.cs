@@ -3,10 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using TaskMgmt.Application.Common.Interfaces;
 using TaskMgmt.Application.Features.TaskAssignees.Common;
 using TaskMgmt.Domain.Entities;
+using TaskMgmt.Domain.Events;
 
 namespace TaskMgmt.Application.Features.TaskAssignees.Commands.AddTaskAssignee;
 
-public class AddTaskAssigneeCommandHandler(IApplicationDbContext context)
+public class AddTaskAssigneeCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     : IRequestHandler<AddTaskAssigneeCommand, TaskAssigneeDto>
 {
     public async Task<TaskAssigneeDto> Handle(AddTaskAssigneeCommand request, CancellationToken cancellationToken)
@@ -20,6 +21,8 @@ public class AddTaskAssigneeCommandHandler(IApplicationDbContext context)
             Role = request.Role,
             AssignedAtUtc = DateTimeOffset.UtcNow,
         };
+        assignee.AddDomainEvent(new TaskAssigneeAddedEvent(
+            request.WorkTaskId, request.UserId, request.Role, currentUser.UserId, assignee.AssignedAtUtc));
 
         context.TaskAssignees.Add(assignee);
         await context.SaveChangesAsync(cancellationToken);

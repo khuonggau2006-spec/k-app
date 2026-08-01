@@ -1,12 +1,14 @@
 using MediatR;
+using TaskMgmt.Application.Common.Caching;
 using TaskMgmt.Application.Common.Interfaces;
 using TaskMgmt.Application.Features.WorkTasks.Common;
 using TaskMgmt.Domain.Entities;
 using TaskMgmt.Domain.Enums;
+using TaskMgmt.Domain.Events;
 
 namespace TaskMgmt.Application.Features.WorkTasks.Commands.CreateWorkTask;
 
-public class CreateWorkTaskCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+public class CreateWorkTaskCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, ICacheService cache)
     : IRequestHandler<CreateWorkTaskCommand, WorkTaskDto>
 {
     public async Task<WorkTaskDto> Handle(CreateWorkTaskCommand request, CancellationToken cancellationToken)
@@ -22,6 +24,7 @@ public class CreateWorkTaskCommandHandler(IApplicationDbContext context, ICurren
             CreatedAtUtc = DateTimeOffset.UtcNow,
             CreatedByUserId = currentUser.UserId,
         };
+        task.AddDomainEvent(new WorkTaskCreatedEvent(task.Id, task.ParentTaskId, currentUser.UserId, task.CreatedAtUtc));
 
         context.WorkTasks.Add(task);
 
@@ -37,6 +40,7 @@ public class CreateWorkTaskCommandHandler(IApplicationDbContext context, ICurren
         }
 
         await context.SaveChangesAsync(cancellationToken);
+        await cache.RemoveByPrefixAsync(CacheKeys.WorkTaskListPrefix, cancellationToken);
 
         return WorkTaskDto.FromEntity(task);
     }

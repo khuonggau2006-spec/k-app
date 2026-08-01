@@ -10,6 +10,12 @@ public interface IApplicationDbContext
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<WorkTask> WorkTasks { get; }
     DbSet<TaskAssignee> TaskAssignees { get; }
+    DbSet<Comment> Comments { get; }
+    DbSet<CommentMention> CommentMentions { get; }
+    DbSet<Attachment> Attachments { get; }
+    DbSet<TaskHistory> TaskHistories { get; }
+    DbSet<DeviceToken> DeviceTokens { get; }
+    DbSet<Notification> Notifications { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

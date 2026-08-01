@@ -15,6 +15,12 @@ public class AppDbContext : DbContext, IApplicationDbContext
     public DbSet<WorkTask> WorkTasks => Set<WorkTask>();
     public DbSet<TaskAssignee> TaskAssignees => Set<TaskAssignee>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Comment> Comments => Set<Comment>();
+    public DbSet<CommentMention> CommentMentions => Set<CommentMention>();
+    public DbSet<Attachment> Attachments => Set<Attachment>();
+    public DbSet<TaskHistory> TaskHistories => Set<TaskHistory>();
+    public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

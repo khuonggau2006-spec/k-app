@@ -1,16 +1,17 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TaskMgmt.Application.Common.Caching;
+using TaskMgmt.Application.Common.Extensions;
 using TaskMgmt.Application.Common.Interfaces;
 using TaskMgmt.Application.Features.Locations.Common;
 
 namespace TaskMgmt.Application.Features.Locations.Queries.GetLocations;
 
-public class GetLocationsQueryHandler(IApplicationDbContext context)
+public class GetLocationsQueryHandler(IApplicationDbContext context, ICacheService cache)
     : IRequestHandler<GetLocationsQuery, List<LocationDto>>
 {
-    public async Task<List<LocationDto>> Handle(GetLocationsQuery request, CancellationToken cancellationToken)
-    {
-        return await context.Locations
+    public Task<List<LocationDto>> Handle(GetLocationsQuery request, CancellationToken cancellationToken) =>
+        cache.GetOrSetAsync(CacheKeys.LocationListKey, CacheKeys.LocationListExpiration, () => context.Locations
             .Where(l => l.IsActive)
             .OrderBy(l => l.Name)
             .Select(l => new LocationDto(
@@ -23,6 +24,5 @@ public class GetLocationsQueryHandler(IApplicationDbContext context)
                 l.ParentLocationId,
                 l.CreatedAtUtc,
                 l.UpdatedAtUtc))
-            .ToListAsync(cancellationToken);
-    }
+            .ToListAsync(cancellationToken), cancellationToken);
 }
