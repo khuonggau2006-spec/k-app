@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-postgres@latest"
+      ],
+      "env": {
+        "DATABASE_URL": "postgresql://taskmgmt_user:taskmgmt_pass@localhost:5432/taskmgmt_db",
+        "DB_READ_ONLY": "true"
+      }
+    }
+  }
+}
