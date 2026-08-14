@@ -17,7 +17,34 @@ Kubernetes).
 Chỉ `nginx` mở cổng ra ngoài internet. `api`/`postgres`/`redis`/`seq` chỉ giao tiếp nội bộ qua
 Docker network, không expose ra host — kể cả Seq, vì log có thể chứa dữ liệu nhạy cảm.
 
-## 2. Xem log
+## 2. Go-live lần đầu: domain + HTTPS
+
+Đã verify thật cơ chế HTTPS của `deploy/nginx/nginx.conf` (redirect 301, TLS handshake, proxy
+`/health` và `/hubs/` qua HTTPS) bằng chứng chỉ self-signed cục bộ — chỉ còn thiếu bước lấy chứng
+chỉ **thật** từ Let's Encrypt, việc này bắt buộc phải làm trên server có domain trỏ tới (CA cần
+xác minh quyền sở hữu domain qua HTTP/DNS, không làm được từ máy dev).
+
+1. Trỏ DNS domain (vd: `api.taskmgmt.example.com`) về IP server.
+2. Trên server, cài `certbot` rồi lấy chứng chỉ (dùng chế độ standalone, tạm dừng nginx nếu đang
+   chiếm cổng 80):
+   ```bash
+   sudo certbot certonly --standalone -d api.taskmgmt.example.com
+   ```
+3. Copy chứng chỉ vào đúng chỗ `docker-compose.prod.yml` đã mount sẵn:
+   ```bash
+   sudo cp /etc/letsencrypt/live/api.taskmgmt.example.com/fullchain.pem deploy/nginx/certs/
+   sudo cp /etc/letsencrypt/live/api.taskmgmt.example.com/privkey.pem deploy/nginx/certs/
+   ```
+4. Sửa `deploy/nginx/nginx.conf`: đổi `server_name _;` thành domain thật, bỏ comment khối
+   `server { listen 443 ssl; ... }` (đã verify đúng cú pháp), bỏ comment dòng
+   `return 301 https://$host$request_uri;` ở block port 80.
+5. `docker compose -f docker-compose.prod.yml restart nginx`, kiểm tra
+   `curl https://api.taskmgmt.example.com/health` (không cần `-k` vì chứng chỉ giờ là thật, được
+   trình duyệt/hệ thống tin cậy).
+6. Chứng chỉ Let's Encrypt hết hạn sau 90 ngày — đặt cron job chạy `certbot renew` hằng tuần và
+   copy lại file + restart nginx sau khi renew thành công.
+
+## 3. Xem log
 
 ```bash
 # Log realtime của 1 service
@@ -51,7 +78,7 @@ Rồi mở `http://localhost:5341` trên trình duyệt máy mình, đăng nhậ
 động xuất hiện trên dashboard Sentry (sentry.io) kèm stack trace đầy đủ, không cần vào server. Nếu
 `SENTRY_DSN` để trống, tính năng này tắt hoàn toàn — dùng Seq/`docker logs` để tra lỗi thay thế.
 
-## 3. Restart service
+## 4. Restart service
 
 ```bash
 # Restart 1 service (không rebuild lại image)
@@ -70,7 +97,7 @@ curl -f https://<domain>/health
 ```
 Trả về `Healthy` (200) là service đã sẵn sàng nhận traffic.
 
-## 4. Backup / restore database
+## 5. Backup / restore database
 
 ### Backup thủ công
 ```bash
@@ -91,7 +118,7 @@ docker exec taskmgmt-postgres pg_restore -U taskmgmt_user -d taskmgmt_db --clean
 đè toàn bộ DB hiện tại (vd: sau sự cố mất dữ liệu), không chạy nhầm trên DB đang có dữ liệu thật
 cần giữ.
 
-## 5. Áp dụng migration mới
+## 6. Áp dụng migration mới
 
 Backend **không** tự động chạy migration khi khởi động — phải áp dụng thủ công trước khi deploy
 bản mới, nếu không API sẽ lỗi ngay khi động tới bảng/cột chưa tồn tại.
@@ -113,7 +140,7 @@ dotnet ef migrations script --project backend/src/TaskMgmt.Infrastructure --star
 **Thứ tự deploy đúng**: backup DB → chạy `dotnet ef database update` → `docker compose up -d
 --build api`. Migration trước, deploy code sau — tránh code mới chạy trên schema cũ.
 
-## 6. Sự cố thường gặp
+## 7. Sự cố thường gặp
 
 ### `/health` trả về lỗi hoặc không phản hồi
 1. `docker compose -f docker-compose.prod.yml ps` — service nào không ở trạng thái `running`?
@@ -140,7 +167,7 @@ dotnet ef migrations script --project backend/src/TaskMgmt.Infrastructure --star
 - Log Postgres/container tích luỹ lâu ngày cũng chiếm nhiều dung lượng — cấu hình `logging` driver
   có giới hạn kích thước trong `docker-compose.prod.yml` nếu chưa có.
 
-## 7. Đổi backend URL cho app đã phát hành (không cần build lại app)
+## 8. Đổi backend URL cho app đã phát hành (không cần build lại app)
 
 Từ mục 5.4: app đọc `api_base_url` từ Firebase Remote Config. Muốn chuyển toàn bộ app đã cài trên
 máy người dùng sang trỏ backend khác (vd: đổi server, bảo trì có kế hoạch):
@@ -150,7 +177,7 @@ máy người dùng sang trỏ backend khác (vd: đổi server, bảo trì có 
 3. App sẽ áp dụng giá trị mới ở lần mở app kế tiếp (do `minimumFetchInterval` đặt 1 giờ — không
    tức thời, cần thời gian lan truyền tuỳ số lượng người dùng).
 
-## 8. Liên hệ khi vượt quá khả năng xử lý cơ bản
+## 9. Liên hệ khi vượt quá khả năng xử lý cơ bản
 
 Nếu sau khi làm theo mục 6 mà vẫn chưa xác định được nguyên nhân, hoặc sự cố liên quan tới mất dữ
 liệu, escalate lên Tech Lead/DevOps thay vì tiếp tục thử — đặc biệt trước khi chạy bất kỳ lệnh nào
