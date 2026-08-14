@@ -14,11 +14,18 @@ chạy được lúc dev, **không dùng để phát hành**). Giờ đã có ke
 - `build.gradle.kts` tự đọc `key.properties` nếu có; máy nào chưa có file này (vd: máy CI/dev
   khác) thì tự rơi về ký debug, không làm hỏng build thường ngày.
 
-**Quan trọng**: mật khẩu keystore hiện đặt tạm là `TaskMgmt-Upload-2026-CHANGE-ME` — **đổi ngay**
-trước khi dùng để phát hành thật (`keytool -storepasswd`), và **backup file `.jks` này ở nơi an
-toàn khác** (ổ cứng ngoài, password manager...). Mất file này hoặc quên mật khẩu thì **không thể
-cập nhật app đã phát hành nữa** — Google Play bắt buộc mọi bản cập nhật phải ký cùng 1 key với bản
-đầu tiên, không có cách khôi phục.
+**Quan trọng**: mật khẩu keystore đã được đổi khỏi giá trị tạm ban đầu (mật khẩu thật lưu trong
+password manager của người phụ trách, không ghi vào tài liệu này). **Backup file `.jks` này ở nơi
+an toàn khác** (ổ cứng ngoài, password manager...) — mất file này hoặc quên mật khẩu thì **không
+thể cập nhật app đã phát hành nữa**, Google Play bắt buộc mọi bản cập nhật phải ký cùng 1 key với
+bản đầu tiên, không có cách khôi phục.
+
+> **Lưu ý kỹ thuật**: `keytool -storepasswd` trên keystore định dạng PKCS12 có bug đã biết ở một
+> số bản Java cũ (JRE 8) — chỉ đổi mật khẩu lớp ngoài mà không mã hoá lại khoá riêng tư bên trong,
+> khiến file hỏng không thể ký được nữa dù đúng mật khẩu mới. Vì vậy keystore hiện tại được **tạo
+> mới hoàn toàn** (định dạng JKS, không dùng lại `-storepasswd`) thay vì đổi mật khẩu keystore cũ.
+> Nếu cần đổi mật khẩu keystore JKS trong tương lai, `-storepasswd`/`-keypasswd` trên JKS an toàn
+> hơn PKCS12 vì hỗ trợ mật khẩu key/store tách biệt đúng chuẩn.
 
 ### Build bản phát hành
 
