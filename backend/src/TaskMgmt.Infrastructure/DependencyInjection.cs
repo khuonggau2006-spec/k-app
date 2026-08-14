@@ -50,16 +50,12 @@ public static class DependencyInjection
         if (!string.IsNullOrWhiteSpace(firebaseSettings?.CredentialsPath) && File.Exists(firebaseSettings.CredentialsPath))
         {
             const string appName = "TaskMgmt";
-            try
-            {
-                firebaseApp = FirebaseApp.GetInstance(appName);
-            }
-            catch (Exception)
-            {
-                firebaseApp = FirebaseApp.Create(
+            // FirebaseApp.GetInstance trả về null (không throw) khi app chưa tồn tại - không dùng
+            // try/catch để phát hiện "chưa tồn tại" vì sẽ không bao giờ vào nhánh catch.
+            firebaseApp = FirebaseApp.GetInstance(appName)
+                ?? FirebaseApp.Create(
                     new AppOptions { Credential = GoogleCredential.FromFile(firebaseSettings.CredentialsPath) },
                     appName);
-            }
         }
 
         services.AddSingleton(new FirebaseAppAccessor(firebaseApp));
