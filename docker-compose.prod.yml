@@ -1,0 +1,67 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taskmgmt-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__Redis: "redis:6379,password=${REDIS_PASSWORD}"
+      Jwt__Secret: "${JWT_SECRET}"
+      Jwt__Issuer: "TaskMgmt.API"
+      Jwt__Audience: "TaskMgmt.Client"
+      Jwt__AccessTokenExpirationMinutes: "30"
+      Jwt__RefreshTokenExpirationDays: "14"
+      Storage__Endpoint: "${STORAGE_ENDPOINT}"
+      Storage__AccessKey: "${STORAGE_ACCESS_KEY}"
+      Storage__SecretKey: "${STORAGE_SECRET_KEY}"
+      Storage__BucketName: "${STORAGE_BUCKET_NAME}"
+      Storage__UseSsl: "${STORAGE_USE_SSL:-true}"
+      Storage__MaxFileSizeBytes: "20971520"
+      Firebase__CredentialsPath: "/run/secrets/firebase-service-account.json"
+    volumes:
+      # File thật đặt ngoài repo trên server, không commit vào git - xem RUNBOOK.md.
+      - ${FIREBASE_CREDENTIALS_HOST_PATH}:/run/secrets/firebase-service-account.json:ro
+    depends_on:
+      - postgres
+      - redis
+    expose:
+      - "8080"
+
+  postgres:
+    image: postgres:16
+    container_name: taskmgmt-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: taskmgmt-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - redis_data:/data
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: taskmgmt-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:

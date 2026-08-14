@@ -180,12 +180,13 @@ G5 Triển khai                                                ██
 | 5.1 | Viết Dockerfile tối ưu cho API (multi-stage build) | | DevOps |
 | 5.2 | Chuẩn bị `docker-compose.prod.yml` hoặc manifest Kubernetes (nếu dùng K8s) | Bao gồm API, PostgreSQL, Redis, reverse proxy (Nginx) | DevOps |
 | 5.3 | Cấu hình biến môi trường/secret cho production (connection string, Firebase key, JWT secret...) | Qua secret manager | DevOps |
-| 5.4 | Deploy lên staging, chạy smoke test | | DevOps/QA |
-| 5.5 | Deploy lên production, cấu hình domain + HTTPS (Let's Encrypt/SSL cert) | | DevOps |
-| 5.6 | Thiết lập giám sát: health-check, log tập trung (Seq/ELK), cảnh báo lỗi (Sentry) | | DevOps |
-| 5.7 | Build & phát hành Flutter app: APK/AAB (Android) và TestFlight/App Store (iOS) nếu áp dụng | | FE |
-| 5.8 | Viết tài liệu vận hành (runbook): cách xem log, restart service, backup/restore DB | | DevOps |
-| 5.9 | Viết release notes, thông báo & đào tạo người dùng cuối | | PM/BA |
+| 5.4 | Chuyển đổi địa chỉ gọi backend thành biến `API_URL`, đọc từ Firebase Remote Config | Cho phép đổi endpoint backend (staging/production) mà không cần build lại app | FE |
+| 5.5 | Deploy lên staging, chạy smoke test | | DevOps/QA |
+| 5.6 | Deploy lên production, cấu hình domain + HTTPS (Let's Encrypt/SSL cert) | | DevOps |
+| 5.7 | Thiết lập giám sát: health-check, log tập trung (Seq/ELK), cảnh báo lỗi (Sentry) | | DevOps |
+| 5.8 | Build & phát hành Flutter app: APK/AAB (Android) và TestFlight/App Store (iOS) nếu áp dụng | | FE |
+| 5.9 | Viết tài liệu vận hành (runbook): cách xem log, restart service, backup/restore DB | | DevOps |
+| 5.10 | Viết release notes, thông báo & đào tạo người dùng cuối | | PM/BA |
 
 **Điều kiện hoàn thành:** Hệ thống chạy ổn định trên production ≥ 48h không có sự cố nghiêm trọng; đội vận hành có thể tự xử lý sự cố cơ bản theo runbook.
 
