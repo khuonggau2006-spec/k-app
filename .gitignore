@@ -21,6 +21,9 @@ mobile/**/android/local.properties
 mobile/**/*.iml
 mobile/**/google-services.json
 mobile/**/GoogleService-Info.plist
+mobile/**/android/key.properties
+mobile/**/*.jks
+mobile/**/*.keystore
 
 # ===== Secrets / env =====
 .env
