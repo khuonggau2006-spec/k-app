@@ -12,9 +12,10 @@ Kubernetes).
 | `api` | Backend .NET (API + Hangfire + SignalR) | `taskmgmt-api` |
 | `postgres` | Cơ sở dữ liệu chính | `taskmgmt-postgres` |
 | `redis` | Cache + Hangfire không dùng Redis (dùng Postgres storage) + SignalR backplane | `taskmgmt-redis` |
+| `seq` | Log tập trung (Serilog ghi tới đây) | `taskmgmt-seq` |
 
-Chỉ `nginx` mở cổng ra ngoài internet. `api`/`postgres`/`redis` chỉ giao tiếp nội bộ qua Docker
-network, không expose ra host.
+Chỉ `nginx` mở cổng ra ngoài internet. `api`/`postgres`/`redis`/`seq` chỉ giao tiếp nội bộ qua
+Docker network, không expose ra host — kể cả Seq, vì log có thể chứa dữ liệu nhạy cảm.
 
 ## 2. Xem log
 
@@ -36,6 +37,19 @@ theo cấu hình mặc định ASP.NET Core — không cần cấu hình thêm �
 nhập bằng JWT hợp lệ qua query string `?access_token=<token>` (token hết hạn theo
 `Jwt:AccessTokenExpirationMinutes`, mặc định 30 phút — hết hạn thì đăng nhập lại lấy token mới rồi
 vào lại link).
+
+**Seq (log tập trung, tìm kiếm/lọc log tiện hơn `docker logs`)**: không public ra internet, mở
+qua SSH tunnel từ máy cá nhân:
+```bash
+ssh -L 5341:localhost:80 <user>@<server>
+```
+Rồi mở `http://localhost:5341` trên trình duyệt máy mình, đăng nhập bằng
+`SEQ_FIRSTRUN_ADMINPASSWORD` đã đặt trong `.env.production`. Có thể lọc theo `StatusCode >= 500`,
+`SourceContext like 'TaskMgmt%'`... để nhanh chóng tìm request lỗi.
+
+**Sentry (cảnh báo lỗi real-time)**: nếu đã cấu hình `SENTRY_DSN`, exception chưa được xử lý sẽ tự
+động xuất hiện trên dashboard Sentry (sentry.io) kèm stack trace đầy đủ, không cần vào server. Nếu
+`SENTRY_DSN` để trống, tính năng này tắt hoàn toàn — dùng Seq/`docker logs` để tra lỗi thay thế.
 
 ## 3. Restart service
 

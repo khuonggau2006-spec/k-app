@@ -21,12 +21,15 @@ services:
       Storage__UseSsl: "${STORAGE_USE_SSL:-true}"
       Storage__MaxFileSizeBytes: "20971520"
       Firebase__CredentialsPath: "/run/secrets/firebase-service-account.json"
+      Seq__ServerUrl: "${SEQ_URL:-http://seq:80}"
+      Sentry__Dsn: "${SENTRY_DSN}"
     volumes:
       # File thật đặt ngoài repo trên server, không commit vào git - xem RUNBOOK.md.
       - ${FIREBASE_CREDENTIALS_HOST_PATH}:/run/secrets/firebase-service-account.json:ro
     depends_on:
       - postgres
       - redis
+      - seq
     expose:
       - "8080"
 
@@ -49,6 +52,19 @@ services:
     volumes:
       - redis_data:/data
 
+  seq:
+    image: datalust/seq:latest
+    container_name: taskmgmt-seq
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_ADMINPASSWORD: "${SEQ_FIRSTRUN_ADMINPASSWORD}"
+    expose:
+      - "80" # Chỉ nội bộ - xem log qua SSH tunnel (vd: ssh -L 5341:localhost:80 <server>), không
+             # public port này ra ngoài (chứa toàn bộ log ứng dụng, có thể có dữ liệu nhạy cảm).
+    volumes:
+      - seq_data:/data
+
   nginx:
     image: nginx:1.27-alpine
     container_name: taskmgmt-nginx
@@ -65,3 +81,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  seq_data:

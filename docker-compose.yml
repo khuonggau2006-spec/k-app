@@ -43,6 +43,18 @@ services:
     depends_on:
       - redis
 
+  seq:
+    image: datalust/seq:latest
+    container_name: taskmgmt-seq
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true" # Dev only - production bật lại xác thực (SEQ_FIRSTRUN_ADMINPASSWORD)
+    ports:
+      - "5341:80" # Web UI + ingestion API - backend trỏ Seq:ServerUrl="http://localhost:5341"
+    volumes:
+      - seq_data:/data
+
   minio:
     image: minio/minio:latest
     container_name: taskmgmt-minio
@@ -61,3 +73,4 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+  seq_data:

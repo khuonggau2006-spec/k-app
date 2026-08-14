@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Serilog;
 using TaskMgmt.API.Authorization;
 using TaskMgmt.API.Hubs;
 using TaskMgmt.API.Middleware;
@@ -19,6 +20,38 @@ using TaskMgmt.Infrastructure;
 using TaskMgmt.Infrastructure.BackgroundJobs;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Log tập trung: luôn ghi ra console; nếu có cấu hình Seq:ServerUrl (log tập trung, xem
+// docker-compose.prod.yml service "seq") thì ghi thêm sang đó - không cấu hình thì bỏ qua êm ái,
+// cùng cách graceful-degrade với Firebase/Storage khi thiếu config.
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .WriteTo.Console();
+
+    var seqServerUrl = context.Configuration["Seq:ServerUrl"];
+    if (!string.IsNullOrWhiteSpace(seqServerUrl))
+    {
+        configuration.WriteTo.Seq(seqServerUrl);
+    }
+});
+
+// Cảnh báo lỗi (Sentry): chỉ bật khi có Sentry:Dsn thật trong config - SDK tự vô hiệu hoá êm ái
+// khi Dsn rỗng (không throw, không có network call nào), cùng cách graceful-degrade với
+// Firebase/Storage/Seq phía trên khi thiếu cấu hình.
+var sentryDsn = builder.Configuration["Sentry:Dsn"];
+if (!string.IsNullOrWhiteSpace(sentryDsn))
+{
+    builder.WebHost.UseSentry(options =>
+    {
+        options.Dsn = sentryDsn;
+        options.Environment = builder.Environment.EnvironmentName;
+        options.TracesSampleRate = 0.2; // 20% request được lấy mẫu để theo dõi hiệu năng, tránh gửi quá nhiều dữ liệu.
+    });
+}
 
 // Add services to the container.
 
