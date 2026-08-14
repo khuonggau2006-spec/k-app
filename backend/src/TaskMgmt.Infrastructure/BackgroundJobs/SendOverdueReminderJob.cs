@@ -1,13 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TaskMgmt.Application.Common.Interfaces;
+using TaskMgmt.Application.Features.Notifications.Common;
 using TaskMgmt.Domain.Enums;
 
 namespace TaskMgmt.Infrastructure.BackgroundJobs;
 
 // Khác với nhắc sắp đến hạn (chỉ nhắc 1 lần), quá hạn thì nhắc lại định kỳ (mỗi ResendInterval)
 // cho tới khi công việc được xử lý xong hoặc huỷ - vẫn còn quá hạn thì vẫn còn cần nhắc.
-public class SendOverdueReminderJob(IApplicationDbContext context, IPushNotificationService pushNotificationService, ILogger<SendOverdueReminderJob> logger)
+public class SendOverdueReminderJob(
+    IApplicationDbContext context,
+    IBackgroundJobScheduler jobScheduler,
+    ICacheService cache,
+    ILogger<SendOverdueReminderJob> logger)
 {
     private static readonly TimeSpan ResendInterval = TimeSpan.FromHours(24);
 
@@ -29,14 +34,15 @@ public class SendOverdueReminderJob(IApplicationDbContext context, IPushNotifica
 
         foreach (var task in tasks)
         {
-            foreach (var userId in task.Assignees.Select(a => a.UserId).Distinct())
+            var assigneeIds = task.Assignees.Select(a => a.UserId).Distinct().ToList();
+            foreach (var userId in assigneeIds)
             {
-                await pushNotificationService.SendToUserAsync(
-                    userId,
-                    "Công việc đã quá hạn",
-                    $"\"{task.Title}\" đã quá hạn từ {task.DueDateUtc:dd/MM/yyyy HH:mm} UTC.",
-                    new Dictionary<string, string> { ["workTaskId"] = task.Id.ToString(), ["type"] = "Overdue" },
-                    cancellationToken);
+                // Dùng chung TaskNotificationHelper (như comment/assignee...) để nhắc quá hạn
+                // cũng hiện trong Trung tâm thông báo trong app, không chỉ mỗi push.
+                await TaskNotificationHelper.NotifyAsync(
+                    context, jobScheduler, cache, userId,
+                    "Công việc đã quá hạn", $"\"{task.Title}\" đã quá hạn từ {task.DueDateUtc:dd/MM/yyyy HH:mm} UTC.",
+                    task.Id, "Overdue", now, cancellationToken);
             }
 
             task.OverdueReminderSentAtUtc = now;

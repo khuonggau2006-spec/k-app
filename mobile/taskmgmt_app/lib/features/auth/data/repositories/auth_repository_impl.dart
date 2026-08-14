@@ -50,7 +50,17 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> logout() => _tokenStorage.clear();
+  Future<void> logout() async {
+    final session = await _tokenStorage.readSession();
+    if (session != null) {
+      // Thu hồi refresh token trên server để chặn dùng lại sau khi đăng xuất; nếu mạng lỗi
+      // thì vẫn cứ xoá token cục bộ - không để người dùng bị kẹt không đăng xuất được.
+      try {
+        await _remoteDataSource.logout(session.refreshToken);
+      } catch (_) {}
+    }
+    await _tokenStorage.clear();
+  }
 
   Future<void> _persist(AuthResultModel result) => _tokenStorage.saveSession(
         StoredSession(

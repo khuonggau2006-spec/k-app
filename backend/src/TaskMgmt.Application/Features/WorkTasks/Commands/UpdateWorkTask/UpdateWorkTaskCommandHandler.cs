@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TaskMgmt.Application.Common.Authorization;
 using TaskMgmt.Application.Common.Caching;
 using TaskMgmt.Application.Common.Exceptions;
 using TaskMgmt.Application.Common.Interfaces;
@@ -14,6 +15,8 @@ public class UpdateWorkTaskCommandHandler(IApplicationDbContext context, ICurren
 {
     public async Task<WorkTaskDto> Handle(UpdateWorkTaskCommand request, CancellationToken cancellationToken)
     {
+        await WorkTaskAccessControl.EnsureCanManageAsync(context, currentUser, request.Id, cancellationToken);
+
         var task = await context.WorkTasks
             .FirstOrDefaultAsync(t => t.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(WorkTask), request.Id);
@@ -52,6 +55,7 @@ public class UpdateWorkTaskCommandHandler(IApplicationDbContext context, ICurren
         await context.SaveChangesAsync(cancellationToken);
         await cache.RemoveAsync(CacheKeys.WorkTaskDetail(task.Id), cancellationToken);
         await cache.RemoveByPrefixAsync(CacheKeys.WorkTaskListPrefix, cancellationToken);
+        await cache.RemoveByPrefixAsync(CacheKeys.DashboardStatsPrefix, cancellationToken);
 
         return WorkTaskDto.FromEntity(task);
     }

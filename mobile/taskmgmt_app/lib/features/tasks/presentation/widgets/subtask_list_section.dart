@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/network/api_exception.dart';
+import '../../../../shared/widgets/inline_empty_state.dart';
 import '../../domain/entities/work_task.dart';
 import '../providers/work_task_provider.dart';
 import 'work_task_form_sheet.dart';
@@ -37,10 +38,7 @@ class SubtaskListSection extends ConsumerWidget {
             childrenAsync.when(
               data: (children) {
                 if (children.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text('Chưa có công việc con.'),
-                  );
+                  return const InlineEmptyState(icon: Icons.checklist_outlined, message: 'Chưa có công việc con.');
                 }
                 return Column(
                   children: children

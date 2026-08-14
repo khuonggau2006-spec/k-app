@@ -26,5 +26,9 @@
       "Bash(rm -rf /c/FlutterPathTest *)",
       "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'dotnet|VBCSCompiler|dart|flutter' } | Select-Object Id,ProcessName,Path)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "postgres"
+  ],
+  "enableAllProjectMcpServers": true
 }

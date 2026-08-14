@@ -15,6 +15,7 @@ import '../../../task_histories/presentation/providers/task_history_provider.dar
 import '../../../task_histories/presentation/widgets/task_history_timeline_section.dart';
 import '../../domain/entities/work_task.dart';
 import '../providers/work_task_provider.dart';
+import '../providers/work_task_realtime_provider.dart';
 import '../widgets/subtask_list_section.dart';
 import '../widgets/work_task_form_sheet.dart';
 
@@ -54,6 +55,9 @@ class WorkTaskDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final taskAsync = ref.watch(taskDetailProvider(taskId));
+    // Join nhóm SignalR của task này khi màn hình mở, tự leave khi rời màn hình (autoDispose) -
+    // xem workTaskRealtimeProvider.
+    ref.watch(workTaskRealtimeProvider(taskId));
 
     return Scaffold(
       appBar: AppBar(

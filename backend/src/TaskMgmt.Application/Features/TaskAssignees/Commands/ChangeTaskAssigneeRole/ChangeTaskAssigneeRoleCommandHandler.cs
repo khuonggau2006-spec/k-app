@@ -13,6 +13,8 @@ public class ChangeTaskAssigneeRoleCommandHandler(IApplicationDbContext context,
 {
     public async Task<TaskAssigneeDto> Handle(ChangeTaskAssigneeRoleCommand request, CancellationToken cancellationToken)
     {
+        await TaskAssigneeAuthorization.EnsureCanManageAsync(context, currentUser, request.WorkTaskId, cancellationToken);
+
         var assignee = await context.TaskAssignees
             .Include(a => a.User)
             .FirstOrDefaultAsync(a => a.WorkTaskId == request.WorkTaskId && a.UserId == request.UserId, cancellationToken)

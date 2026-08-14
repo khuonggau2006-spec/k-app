@@ -12,6 +12,8 @@ public class AddTaskAssigneeCommandHandler(IApplicationDbContext context, ICurre
 {
     public async Task<TaskAssigneeDto> Handle(AddTaskAssigneeCommand request, CancellationToken cancellationToken)
     {
+        await TaskAssigneeAuthorization.EnsureCanManageAsync(context, currentUser, request.WorkTaskId, cancellationToken);
+
         var user = await context.Users.FirstAsync(u => u.Id == request.UserId, cancellationToken);
 
         var assignee = new TaskAssignee

@@ -16,16 +16,22 @@ public class FirebaseFcmPushNotificationService(
     public async Task<PushSendResult> SendToUserAsync(
         Guid userId, string title, string body, IReadOnlyDictionary<string, string>? data, CancellationToken cancellationToken)
     {
+        var tokens = await context.DeviceTokens
+            .Where(t => t.UserId == userId)
+            .Select(t => t.Token)
+            .ToListAsync(cancellationToken);
+
+        return await SendToTokensAsync(tokens, title, body, data, cancellationToken);
+    }
+
+    private async Task<PushSendResult> SendToTokensAsync(
+        List<string> tokens, string title, string body, IReadOnlyDictionary<string, string>? data, CancellationToken cancellationToken)
+    {
         if (_messaging is null)
         {
             logger.LogWarning("Firebase chưa được cấu hình (thiếu Firebase:CredentialsPath) - bỏ qua gửi push.");
             return new PushSendResult(0, 0);
         }
-
-        var tokens = await context.DeviceTokens
-            .Where(t => t.UserId == userId)
-            .Select(t => t.Token)
-            .ToListAsync(cancellationToken);
 
         if (tokens.Count == 0)
         {

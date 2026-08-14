@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_exception.dart';
+import '../../../../shared/widgets/inline_empty_state.dart';
 import '../../../auth/domain/entities/user.dart' as domain;
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/task_assignee.dart';
@@ -82,9 +83,9 @@ class AssigneeListSection extends ConsumerWidget {
             assigneesAsync.when(
               data: (assignees) {
                 if (assignees.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text('Chưa có ai tham gia công việc này.'),
+                  return const InlineEmptyState(
+                    icon: Icons.people_outline,
+                    message: 'Chưa có ai tham gia công việc này.',
                   );
                 }
                 final canManage = _canManage(assignees, currentUser);

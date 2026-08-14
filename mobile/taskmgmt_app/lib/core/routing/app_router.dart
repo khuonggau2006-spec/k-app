@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/locations/presentation/screens/location_list_screen.dart';
+import '../../features/notifications/presentation/screens/notification_center_screen.dart';
 import '../../features/tasks/presentation/screens/task_list_screen.dart';
 import '../../features/tasks/presentation/screens/work_task_detail_screen.dart';
 
@@ -58,6 +60,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/tasks/:id',
         name: WorkTaskDetailScreen.name,
         builder: (context, state) => WorkTaskDetailScreen(taskId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: NotificationCenterScreen.path,
+        name: NotificationCenterScreen.name,
+        builder: (context, state) => const NotificationCenterScreen(),
+      ),
+      GoRoute(
+        path: DashboardScreen.path,
+        name: DashboardScreen.name,
+        builder: (context, state) => const DashboardScreen(),
       ),
     ],
   );

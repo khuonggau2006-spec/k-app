@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/network/api_exception.dart';
+import '../../../../shared/widgets/inline_empty_state.dart';
 import '../../domain/entities/task_history.dart';
 import '../providers/task_history_provider.dart';
 
@@ -40,10 +41,7 @@ class TaskHistoryTimelineSection extends ConsumerWidget {
             historyAsync.when(
               data: (entries) {
                 if (entries.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text('Chưa có lịch sử thay đổi.'),
-                  );
+                  return const InlineEmptyState(icon: Icons.history, message: 'Chưa có lịch sử thay đổi.');
                 }
                 return Column(
                   children: [for (final entry in entries) _HistoryTile(entry: entry)],

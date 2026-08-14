@@ -4,8 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/models/paged_result.dart';
 import '../../../../core/network/api_exception.dart';
+import '../../../../shared/widgets/empty_state_view.dart';
+import '../../../../shared/widgets/error_state_view.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../dashboard/presentation/screens/dashboard_screen.dart';
 import '../../../locations/presentation/screens/location_list_screen.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../notifications/presentation/screens/notification_center_screen.dart';
 import '../../domain/entities/work_task.dart';
 import '../providers/work_task_provider.dart';
 import '../widgets/work_task_filter_bar.dart';
@@ -46,11 +51,26 @@ class TaskListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tasksAsync = ref.watch(workTasksProvider);
     final user = ref.watch(authControllerProvider).valueOrNull;
+    final unreadCount = ref.watch(unreadNotificationCountProvider).valueOrNull ?? 0;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Công việc'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.dashboard_outlined),
+            tooltip: 'Dashboard',
+            onPressed: () => context.push(DashboardScreen.path),
+          ),
+          IconButton(
+            icon: Badge.count(
+              count: unreadCount,
+              isLabelVisible: unreadCount > 0,
+              child: const Icon(Icons.notifications_outlined),
+            ),
+            tooltip: 'Thông báo',
+            onPressed: () => context.push(NotificationCenterScreen.path),
+          ),
           IconButton(
             icon: const Icon(Icons.location_on_outlined),
             tooltip: 'Vị trí',
@@ -82,7 +102,7 @@ class TaskListScreen extends ConsumerWidget {
             child: tasksAsync.when(
               data: (result) => _buildList(context, ref, result),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => _ErrorState(
+              error: (error, _) => ErrorStateView(
                 message: error is ApiException ? error.message : 'Không thể tải danh sách công việc.',
                 onRetry: () => ref.read(workTasksProvider.notifier).refresh(),
               ),
@@ -100,7 +120,11 @@ class TaskListScreen extends ConsumerWidget {
 
   Widget _buildList(BuildContext context, WidgetRef ref, PagedResult<WorkTask> result) {
     if (result.items.isEmpty) {
-      return const _EmptyState();
+      return const EmptyStateView(
+        icon: Icons.task_alt_outlined,
+        message: 'Chưa có công việc nào.',
+        hint: 'Bấm nút + để tạo công việc mới.',
+      );
     }
 
     return RefreshIndicator(
@@ -118,51 +142,6 @@ class TaskListScreen extends ConsumerWidget {
             onDelete: () => _confirmDelete(context, ref, task),
           );
         },
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.task_alt_outlined, size: 48, color: Theme.of(context).colorScheme.outline),
-          const SizedBox(height: 16),
-          const Text('Chưa có công việc nào.'),
-          const Text('Bấm nút + để tạo công việc mới.'),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
-            const SizedBox(height: 16),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('Thử lại')),
-          ],
-        ),
       ),
     );
   }

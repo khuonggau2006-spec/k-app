@@ -41,6 +41,7 @@ public class CreateWorkTaskCommandHandler(IApplicationDbContext context, ICurren
 
         await context.SaveChangesAsync(cancellationToken);
         await cache.RemoveByPrefixAsync(CacheKeys.WorkTaskListPrefix, cancellationToken);
+        await cache.RemoveByPrefixAsync(CacheKeys.DashboardStatsPrefix, cancellationToken);
 
         return WorkTaskDto.FromEntity(task);
     }

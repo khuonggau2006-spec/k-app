@@ -11,9 +11,16 @@ import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/comments/data/datasources/comment_remote_data_source.dart';
 import '../../features/comments/data/repositories/comment_repository_impl.dart';
 import '../../features/comments/domain/repositories/comment_repository.dart';
+import '../../features/dashboard/data/datasources/dashboard_remote_data_source.dart';
+import '../../features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import '../../features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../../features/locations/data/datasources/location_remote_data_source.dart';
 import '../../features/locations/data/repositories/location_repository_impl.dart';
 import '../../features/locations/domain/repositories/location_repository.dart';
+import '../../features/notifications/data/datasources/device_token_remote_data_source.dart';
+import '../../features/notifications/data/datasources/notification_remote_data_source.dart';
+import '../../features/notifications/data/repositories/notification_repository_impl.dart';
+import '../../features/notifications/domain/repositories/notification_repository.dart';
 import '../../features/task_assignees/data/datasources/task_assignee_remote_data_source.dart';
 import '../../features/task_assignees/data/repositories/task_assignee_repository_impl.dart';
 import '../../features/task_assignees/domain/repositories/task_assignee_repository.dart';
@@ -28,6 +35,7 @@ import '../../features/users/data/repositories/user_repository_impl.dart';
 import '../../features/users/domain/repositories/user_repository.dart';
 import '../network/auth_event_bus.dart';
 import '../network/dio_client.dart';
+import '../realtime/realtime_service.dart';
 import '../storage/token_storage.dart';
 
 final getIt = GetIt.instance;
@@ -61,4 +69,14 @@ void setupLocator() {
 
   getIt.registerLazySingleton<TaskHistoryRemoteDataSource>(() => TaskHistoryRemoteDataSource(getIt()));
   getIt.registerLazySingleton<TaskHistoryRepository>(() => TaskHistoryRepositoryImpl(getIt()));
+
+  getIt.registerLazySingleton<DeviceTokenRemoteDataSource>(() => DeviceTokenRemoteDataSource(getIt()));
+
+  getIt.registerLazySingleton<NotificationRemoteDataSource>(() => NotificationRemoteDataSource(getIt()));
+  getIt.registerLazySingleton<NotificationRepository>(() => NotificationRepositoryImpl(getIt()));
+
+  getIt.registerLazySingleton<DashboardRemoteDataSource>(() => DashboardRemoteDataSource(getIt()));
+  getIt.registerLazySingleton<DashboardRepository>(() => DashboardRepositoryImpl(getIt()));
+
+  getIt.registerLazySingleton<RealtimeService>(() => RealtimeService(getIt()));
 }

@@ -47,4 +47,12 @@ class AuthRemoteDataSource {
       throw mapDioException(e);
     }
   }
+
+  Future<void> logout(String refreshToken) async {
+    try {
+      await _dio.post<void>('/auth/logout', data: {'refreshToken': refreshToken});
+    } on DioException catch (e) {
+      throw mapDioException(e);
+    }
+  }
 }

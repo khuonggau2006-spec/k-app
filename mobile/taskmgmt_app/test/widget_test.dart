@@ -5,6 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:taskmgmt_app/app.dart';
 import 'package:taskmgmt_app/core/models/paged_result.dart';
 import 'package:taskmgmt_app/core/network/api_exception.dart';
+import 'package:taskmgmt_app/core/push/push_notification_provider.dart';
+import 'package:taskmgmt_app/core/push/push_notification_service.dart';
+import 'package:taskmgmt_app/core/realtime/realtime_provider.dart';
+import 'package:taskmgmt_app/core/realtime/realtime_service.dart';
+import 'package:taskmgmt_app/core/realtime/task_updated_event.dart';
 import 'package:taskmgmt_app/features/auth/domain/entities/user.dart';
 import 'package:taskmgmt_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:taskmgmt_app/features/auth/presentation/providers/auth_provider.dart';
@@ -38,6 +43,34 @@ class _FakeAuthRepository implements AuthRepository {
 class _FakeLocationRepository implements LocationRepository {
   @override
   Future<List<Location>> getLocations() async => [];
+}
+
+// Không gọi setupLocator() trong test nên GetIt không có DeviceTokenRemoteDataSource - fake hẳn
+// PushNotificationService để bỏ qua toàn bộ luồng push, tương tự cách các repository khác được
+// fake ở dưới.
+class _FakePushNotificationService implements PushNotificationService {
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> unregisterCurrentToken() async {}
+}
+
+class _FakeRealtimeService implements RealtimeService {
+  @override
+  Future<void> connect() async {}
+
+  @override
+  Future<void> disconnect() async {}
+
+  @override
+  Future<void> joinTaskGroup(String taskId) async {}
+
+  @override
+  Future<void> leaveTaskGroup(String taskId) async {}
+
+  @override
+  Stream<TaskUpdatedEvent> get taskUpdates => const Stream.empty();
 }
 
 class _FakeWorkTaskRepository implements WorkTaskRepository {
@@ -78,6 +111,8 @@ Widget _buildApp() => ProviderScope(
         authRepositoryProvider.overrideWithValue(_FakeAuthRepository()),
         locationRepositoryProvider.overrideWithValue(_FakeLocationRepository()),
         workTaskRepositoryProvider.overrideWithValue(_FakeWorkTaskRepository()),
+        pushNotificationServiceProvider.overrideWithValue(_FakePushNotificationService()),
+        realtimeServiceProvider.overrideWithValue(_FakeRealtimeService()),
       ],
       child: const TaskMgmtApp(),
     );

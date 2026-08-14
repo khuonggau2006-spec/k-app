@@ -39,5 +39,23 @@ ApiException mapDioException(DioException exception) {
     return const ApiException('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
   }
 
-  return const ApiException('Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối mạng.');
+  // 429 (rate limit) không kèm body JSON - middleware giới hạn tần suất trả về rỗng.
+  if (exception.response?.statusCode == 429) {
+    return const ApiException('Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.');
+  }
+
+  // Không có response nghĩa là request chưa tới được server - phân biệt rõ nguyên nhân
+  // thay vì gộp chung 1 thông báo, để người dùng biết nên chờ hay nên kiểm tra mạng.
+  return switch (exception.type) {
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout =>
+      const ApiException('Kết nối tới máy chủ quá lâu. Vui lòng thử lại.'),
+    DioExceptionType.connectionError =>
+      const ApiException('Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối mạng.'),
+    DioExceptionType.badCertificate =>
+      const ApiException('Kết nối không an toàn tới máy chủ. Vui lòng thử lại sau.'),
+    DioExceptionType.cancel => const ApiException('Yêu cầu đã bị huỷ.'),
+    _ => const ApiException('Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối mạng.'),
+  };
 }

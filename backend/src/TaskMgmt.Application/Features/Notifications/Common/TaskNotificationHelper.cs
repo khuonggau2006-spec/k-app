@@ -5,7 +5,9 @@ using TaskMgmt.Domain.Entities;
 
 namespace TaskMgmt.Application.Features.Notifications.Common;
 
-internal static class TaskNotificationHelper
+// Public (không internal) vì các recurring job nhắc hạn ở TaskMgmt.Infrastructure cũng cần dùng
+// chung điểm hội tụ này, tránh lặp lại logic ghi Notification + enqueue push + invalidate cache.
+public static class TaskNotificationHelper
 {
     // Trả về công việc + danh sách userId của các assignee khác (loại trừ actor - không cần tự
     // báo cho chính người vừa thực hiện hành động).

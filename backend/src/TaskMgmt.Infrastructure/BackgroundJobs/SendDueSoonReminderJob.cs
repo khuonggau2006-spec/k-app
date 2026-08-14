@@ -1,13 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TaskMgmt.Application.Common.Interfaces;
+using TaskMgmt.Application.Features.Notifications.Common;
 using TaskMgmt.Domain.Enums;
 
 namespace TaskMgmt.Infrastructure.BackgroundJobs;
 
 // Nhắc 1 lần duy nhất cho mỗi công việc khi còn trong vòng 24h trước hạn - không nhắc lại nếu
 // đã nhắc rồi (DueSoonReminderSentAtUtc), trừ khi hạn đổi (xem UpdateWorkTaskCommandHandler).
-public class SendDueSoonReminderJob(IApplicationDbContext context, IPushNotificationService pushNotificationService, ILogger<SendDueSoonReminderJob> logger)
+public class SendDueSoonReminderJob(
+    IApplicationDbContext context,
+    IBackgroundJobScheduler jobScheduler,
+    ICacheService cache,
+    ILogger<SendDueSoonReminderJob> logger)
 {
     private static readonly TimeSpan ReminderWindow = TimeSpan.FromHours(24);
 
@@ -30,14 +35,16 @@ public class SendDueSoonReminderJob(IApplicationDbContext context, IPushNotifica
 
         foreach (var task in tasks)
         {
-            foreach (var userId in task.Assignees.Select(a => a.UserId).Distinct())
+            var assigneeIds = task.Assignees.Select(a => a.UserId).Distinct().ToList();
+            foreach (var userId in assigneeIds)
             {
-                await pushNotificationService.SendToUserAsync(
-                    userId,
-                    "Công việc sắp đến hạn",
-                    $"\"{task.Title}\" sắp đến hạn vào {task.DueDateUtc:dd/MM/yyyy HH:mm} UTC.",
-                    new Dictionary<string, string> { ["workTaskId"] = task.Id.ToString(), ["type"] = "DueSoon" },
-                    cancellationToken);
+                // Dùng chung TaskNotificationHelper (như comment/assignee...) để nhắc hạn cũng
+                // hiện trong Trung tâm thông báo trong app, không chỉ mỗi push (có thể tắt/không
+                // cấu hình Firebase).
+                await TaskNotificationHelper.NotifyAsync(
+                    context, jobScheduler, cache, userId,
+                    "Công việc sắp đến hạn", $"\"{task.Title}\" sắp đến hạn vào {task.DueDateUtc:dd/MM/yyyy HH:mm} UTC.",
+                    task.Id, "DueSoon", now, cancellationToken);
             }
 
             task.DueSoonReminderSentAtUtc = now;

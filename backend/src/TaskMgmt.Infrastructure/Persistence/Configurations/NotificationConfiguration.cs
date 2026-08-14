@@ -14,7 +14,9 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.Property(n => n.Body).HasMaxLength(1000).IsRequired();
         builder.Property(n => n.Type).HasMaxLength(50).IsRequired();
 
-        builder.HasIndex(n => new { n.UserId, n.IsRead });
+        // Thêm CreatedAtUtc vào cuối để phủ luôn ORDER BY CreatedAtUtc DESC trong GetNotificationsQuery,
+        // tránh bước sort riêng sau khi lọc theo UserId/IsRead.
+        builder.HasIndex(n => new { n.UserId, n.IsRead, n.CreatedAtUtc });
         builder.HasIndex(n => n.WorkTaskId);
 
         builder.HasOne(n => n.User)

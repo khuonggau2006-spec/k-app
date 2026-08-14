@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:taskmgmt_app/core/models/paged_result.dart';
+import 'package:taskmgmt_app/core/realtime/realtime_provider.dart';
+import 'package:taskmgmt_app/core/realtime/realtime_service.dart';
+import 'package:taskmgmt_app/core/realtime/task_updated_event.dart';
 import 'package:taskmgmt_app/features/attachments/domain/entities/attachment.dart';
 import 'package:taskmgmt_app/features/attachments/domain/repositories/attachment_repository.dart';
 import 'package:taskmgmt_app/features/attachments/presentation/providers/attachment_provider.dart';
@@ -168,6 +171,25 @@ class _FakeTaskHistoryRepository implements TaskHistoryRepository {
       ];
 }
 
+// Không gọi setupLocator() trong test nên GetIt không có RealtimeService - fake hẳn để
+// workTaskRealtimeProvider (join nhóm SignalR khi mở màn hình) không chạm tới GetIt.
+class _FakeRealtimeService implements RealtimeService {
+  @override
+  Future<void> connect() async {}
+
+  @override
+  Future<void> disconnect() async {}
+
+  @override
+  Future<void> joinTaskGroup(String taskId) async {}
+
+  @override
+  Future<void> leaveTaskGroup(String taskId) async {}
+
+  @override
+  Stream<TaskUpdatedEvent> get taskUpdates => const Stream.empty();
+}
+
 Widget _buildScreen() => ProviderScope(
       overrides: [
         workTaskRepositoryProvider.overrideWithValue(_FakeWorkTaskRepository()),
@@ -177,6 +199,7 @@ Widget _buildScreen() => ProviderScope(
         commentRepositoryProvider.overrideWithValue(_FakeCommentRepository()),
         attachmentRepositoryProvider.overrideWithValue(_FakeAttachmentRepository()),
         taskHistoryRepositoryProvider.overrideWithValue(_FakeTaskHistoryRepository()),
+        realtimeServiceProvider.overrideWithValue(_FakeRealtimeService()),
       ],
       child: const MaterialApp(home: WorkTaskDetailScreen(taskId: _taskId)),
     );

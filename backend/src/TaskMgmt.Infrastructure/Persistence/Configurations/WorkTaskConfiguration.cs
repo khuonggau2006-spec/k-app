@@ -13,8 +13,11 @@ public class WorkTaskConfiguration : IEntityTypeConfiguration<WorkTask>
         builder.Property(t => t.Title).HasMaxLength(200).IsRequired();
         builder.Property(t => t.Status).HasConversion<int>();
 
-        builder.HasIndex(t => t.Status);
-        builder.HasIndex(t => t.DueDateUtc);
+        // Mọi query đọc WorkTask đều mở đầu bằng Where(IsActive) - đặt IsActive làm cột dẫn đầu
+        // để Postgres dùng được index cho cả 2 kiểu lọc phổ biến: theo Status/Location (danh sách,
+        // dashboard) và theo khoảng DueDateUtc (dashboard quá hạn/sắp hạn, job nhắc hạn).
+        builder.HasIndex(t => new { t.IsActive, t.Status, t.LocationId });
+        builder.HasIndex(t => new { t.IsActive, t.DueDateUtc, t.Status });
 
         builder.HasOne(t => t.ParentTask)
             .WithMany(t => t.SubTasks)

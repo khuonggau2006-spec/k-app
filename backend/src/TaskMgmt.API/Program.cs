@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -47,6 +48,25 @@ builder.Services.AddCors(options =>
         .SetIsOriginAllowed(_ => true)
         .AllowAnyMethod()
         .AllowAnyHeader());
+});
+
+// Chống brute-force cho các endpoint xác thực (login/register/refresh-token là [AllowAnonymous],
+// không bị chặn bởi JWT nên cần giới hạn số lần thử theo IP). 10 request/phút/IP là đủ rộng cho
+// người dùng thật gõ sai vài lần, nhưng chặn được script dò mật khẩu tự động.
+const string AuthRateLimiterPolicy = "auth";
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy(AuthRateLimiterPolicy, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 10,
+                QueueLimit = 0,
+            }));
 });
 
 builder.Services.AddHealthChecks();
@@ -135,6 +155,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 app.MapHealthChecks("/health").AllowAnonymous();

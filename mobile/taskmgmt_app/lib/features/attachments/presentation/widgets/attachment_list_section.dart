@@ -8,6 +8,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/network/api_exception.dart';
+import '../../../../shared/widgets/inline_empty_state.dart';
 import '../../domain/entities/attachment.dart';
 import '../providers/attachment_provider.dart';
 
@@ -68,7 +69,10 @@ class _AttachmentListSectionState extends ConsumerState<AttachmentListSection> {
       await file.create(recursive: true);
       await file.writeAsBytes(bytes);
 
-      await OpenFilex.open(file.path);
+      final result = await OpenFilex.open(file.path);
+      if (result.type != ResultType.done && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Không thể mở tệp: ${result.message}')));
+      }
     } catch (e) {
       if (!mounted) return;
       final message = e is ApiException ? e.message : 'Không thể mở tệp.';
@@ -128,10 +132,7 @@ class _AttachmentListSectionState extends ConsumerState<AttachmentListSection> {
             attachmentsAsync.when(
               data: (attachments) {
                 if (attachments.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text('Chưa có tệp đính kèm nào.'),
-                  );
+                  return const InlineEmptyState(icon: Icons.attach_file, message: 'Chưa có tệp đính kèm nào.');
                 }
                 return Column(
                   children: attachments

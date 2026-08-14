@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/network/api_exception.dart';
+import '../../../../shared/widgets/inline_empty_state.dart';
 import '../../../users/presentation/providers/user_provider.dart';
 import '../../domain/entities/comment.dart';
 import '../providers/comment_provider.dart';
@@ -81,10 +82,7 @@ class _CommentListSectionState extends ConsumerState<CommentListSection> {
             commentsAsync.when(
               data: (comments) {
                 if (comments.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text('Chưa có bình luận nào.'),
-                  );
+                  return const InlineEmptyState(icon: Icons.chat_bubble_outline, message: 'Chưa có bình luận nào.');
                 }
                 return Column(
                   children: [for (final comment in comments) _CommentTile(comment: comment)],

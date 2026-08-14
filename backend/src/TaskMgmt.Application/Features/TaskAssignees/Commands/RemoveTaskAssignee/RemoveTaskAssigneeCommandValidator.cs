@@ -9,12 +9,19 @@ public class RemoveTaskAssigneeCommandValidator : AbstractValidator<RemoveTaskAs
 {
     public RemoveTaskAssigneeCommandValidator(IApplicationDbContext context, ICurrentUserService currentUser)
     {
-        RuleFor(x => x.WorkTaskId)
-            .MustAsync(async (id, cancellationToken) =>
+        // Tự rời khỏi task thì không cần là Owner - chỉ cần là Owner/Manager/Admin khi
+        // gỡ MỘT NGƯỜI KHÁC ra khỏi task.
+        RuleFor(x => x)
+            .MustAsync(async (x, cancellationToken) =>
             {
-                await TaskAssigneeAuthorization.EnsureCanManageAsync(context, currentUser, id, cancellationToken);
+                if (currentUser.UserId != x.UserId)
+                {
+                    await TaskAssigneeAuthorization.EnsureCanManageAsync(context, currentUser, x.WorkTaskId, cancellationToken);
+                }
+
                 return true;
-            });
+            })
+            .WithName("WorkTaskId");
 
         RuleFor(x => x)
             .MustAsync(async (x, cancellationToken) =>

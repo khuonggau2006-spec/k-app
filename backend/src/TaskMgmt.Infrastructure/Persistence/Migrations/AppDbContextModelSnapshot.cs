@@ -257,7 +257,7 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("WorkTaskId");
 
-                    b.HasIndex("UserId", "IsRead");
+                    b.HasIndex("UserId", "IsRead", "CreatedAtUtc");
 
                     b.ToTable("Notifications", (string)null);
                 });
@@ -289,6 +289,8 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAtUtc");
 
                     b.HasIndex("Token")
                         .IsUnique();
@@ -483,15 +485,15 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
-                    b.HasIndex("DueDateUtc");
-
                     b.HasIndex("LocationId");
 
                     b.HasIndex("ParentTaskId");
 
-                    b.HasIndex("Status");
-
                     b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("IsActive", "DueDateUtc", "Status");
+
+                    b.HasIndex("IsActive", "Status", "LocationId");
 
                     b.ToTable("WorkTasks", (string)null);
                 });

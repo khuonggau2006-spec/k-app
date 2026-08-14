@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../shared/widgets/work_task_status_style.dart';
 import '../../../locations/presentation/providers/location_provider.dart';
 import '../../domain/entities/work_task.dart';
 
@@ -63,14 +64,7 @@ class _StatusDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = switch (status) {
-      WorkTaskStatus.toDo => Colors.grey,
-      WorkTaskStatus.inProgress => Colors.blue,
-      WorkTaskStatus.inReview => Colors.orange,
-      WorkTaskStatus.done => Colors.green,
-      WorkTaskStatus.cancelled => Colors.red,
-    };
-    return CircleAvatar(backgroundColor: color, radius: 6);
+    return CircleAvatar(backgroundColor: workTaskStatusColor(status), radius: 6);
   }
 }
 
