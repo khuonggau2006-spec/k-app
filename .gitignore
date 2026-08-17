@@ -46,3 +46,6 @@ Thumbs.db
 
 appsettings.Development.json
 appsettings.Local.json
+
+# ===== Git worktrees (subagent-driven dev isolation) =====
+.worktrees/
