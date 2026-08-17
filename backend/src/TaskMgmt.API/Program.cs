@@ -193,14 +193,19 @@ app.UseRateLimiter();
 app.MapControllers();
 app.MapHealthChecks("/health").AllowAnonymous();
 app.MapHub<NotificationHub>("/hubs/notifications");
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
-{
-    Authorization = [new HangfireDashboardAuthorizationFilter()],
-});
 
-// Đăng ký lịch chạy - AddOrUpdate là idempotent, gọi lại mỗi lần khởi động không tạo trùng job.
+// Dashboard + lịch chạy đều cần service Hangfire đã đăng ký ở AddInfrastructure() - cùng điều
+// kiện "Hangfire:Disabled" với bên đó, nếu không UseHangfireDashboard sẽ báo thiếu service khi
+// AddHangfire() không chạy (đúng chỗ này từng bị lệch điều kiện, chỉ lộ ra khi test thật sự tắt
+// được Hangfire).
 if (!app.Configuration.GetValue<bool>("Hangfire:Disabled"))
 {
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = [new HangfireDashboardAuthorizationFilter()],
+    });
+
+    // Đăng ký lịch chạy - AddOrUpdate là idempotent, gọi lại mỗi lần khởi động không tạo trùng job.
     RecurringJob.AddOrUpdate<SendDueSoonReminderJob>(
         "send-due-soon-reminders", job => job.ExecuteAsync(), Cron.Hourly);
     RecurringJob.AddOrUpdate<SendOverdueReminderJob>(
