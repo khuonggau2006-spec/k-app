@@ -4,6 +4,8 @@ using TaskMgmt.Application.Common.Models;
 using TaskMgmt.Application.Features.Notifications.Commands.MarkAllNotificationsAsRead;
 using TaskMgmt.Application.Features.Notifications.Commands.MarkNotificationAsRead;
 using TaskMgmt.Application.Features.Notifications.Common;
+using TaskMgmt.Application.Features.Notifications.Commands.UpdateNotificationPreference;
+using TaskMgmt.Application.Features.Notifications.Queries.GetNotificationPreferences;
 using TaskMgmt.Application.Features.Notifications.Queries.GetNotifications;
 using TaskMgmt.Application.Features.Notifications.Queries.GetUnreadNotificationCount;
 
@@ -41,4 +43,21 @@ public class NotificationsController(ISender sender) : ControllerBase
         await sender.Send(new MarkAllNotificationsAsReadCommand(), cancellationToken);
         return NoContent();
     }
+
+    [HttpGet("preferences")]
+    public async Task<ActionResult<List<NotificationPreferenceDto>>> GetPreferences(CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetNotificationPreferencesQuery(), cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPut("preferences/{type}")]
+    public async Task<IActionResult> UpdatePreference(
+        string type, UpdateNotificationPreferenceRequest request, CancellationToken cancellationToken)
+    {
+        await sender.Send(new UpdateNotificationPreferenceCommand(type, request.IsEnabled), cancellationToken);
+        return NoContent();
+    }
 }
+
+public record UpdateNotificationPreferenceRequest(bool IsEnabled);
