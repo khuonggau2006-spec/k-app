@@ -21,6 +21,7 @@ public class AppDbContext : DbContext, IApplicationDbContext
     public DbSet<TaskHistory> TaskHistories => Set<TaskHistory>();
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
