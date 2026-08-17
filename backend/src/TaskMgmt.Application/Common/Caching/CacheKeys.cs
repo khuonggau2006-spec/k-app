@@ -18,6 +18,8 @@ internal static class CacheKeys
 
     public static readonly TimeSpan UnreadNotificationCountExpiration = TimeSpan.FromSeconds(30);
 
+    public static readonly TimeSpan DisabledNotificationTypesExpiration = TimeSpan.FromMinutes(5);
+
     public const string DashboardStatsPrefix = "dashboard:stats:";
     public static readonly TimeSpan DashboardStatsExpiration = TimeSpan.FromSeconds(60);
 
@@ -31,6 +33,8 @@ internal static class CacheKeys
     public static string LocationDetail(Guid id) => $"locations:detail:{id}";
 
     public static string UnreadNotificationCount(Guid userId) => $"notifications:unreadcount:{userId}";
+
+    public static string DisabledNotificationTypes(Guid userId) => $"notifications:disabledtypes:{userId}";
 
     public static string DashboardStats(Guid? locationId) => $"{DashboardStatsPrefix}{locationId}";
 }
