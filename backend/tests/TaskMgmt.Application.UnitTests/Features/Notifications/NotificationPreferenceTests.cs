@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using TaskMgmt.Application.Common.Caching;
 using TaskMgmt.Application.Common.Exceptions;
+using TaskMgmt.Application.Common.Interfaces;
 using TaskMgmt.Application.Features.Notifications.Commands.UpdateNotificationPreference;
 using TaskMgmt.Application.Features.Notifications.Common;
 using TaskMgmt.Application.Features.Notifications.Queries.GetNotificationPreferences;
@@ -91,5 +93,29 @@ public class NotificationPreferenceTests
 
         await Assert.ThrowsAsync<ValidationException>(
             () => sender.Send(new UpdateNotificationPreferenceCommand("KhongTonTai", false)));
+    }
+
+    [Fact]
+    public async Task UpdatePreference_InvalidatesDisabledTypesCache()
+    {
+        var userId = Guid.NewGuid();
+        await using var provider = TestServiceProviderFactory.Create(userId, SystemRole.Member);
+        var sender = provider.GetRequiredService<ISender>();
+        var cache = provider.GetRequiredService<ICacheService>();
+
+        // Simulate a stale cached "nothing disabled" result, as if an earlier
+        // notification had already primed the cache before the user changed
+        // their preference.
+        await cache.SetAsync(
+            CacheKeys.DisabledNotificationTypes(userId),
+            new List<string>(),
+            CacheKeys.DisabledNotificationTypesExpiration,
+            default);
+
+        await sender.Send(new UpdateNotificationPreferenceCommand("Overdue", false));
+
+        var (found, _) = await cache.TryGetAsync<List<string>>(
+            CacheKeys.DisabledNotificationTypes(userId), default);
+        Assert.False(found);
     }
 }
