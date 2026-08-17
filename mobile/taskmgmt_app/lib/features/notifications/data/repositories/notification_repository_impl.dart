@@ -1,5 +1,6 @@
 import '../../../../core/models/paged_result.dart';
 import '../../domain/entities/notification.dart';
+import '../../domain/entities/notification_preference.dart';
 import '../../domain/repositories/notification_repository.dart';
 import '../datasources/notification_remote_data_source.dart';
 
@@ -28,4 +29,14 @@ class NotificationRepositoryImpl implements NotificationRepository {
 
   @override
   Future<void> markAllAsRead() => _remoteDataSource.markAllAsRead();
+
+  @override
+  Future<List<NotificationPreference>> getPreferences() async {
+    final models = await _remoteDataSource.getPreferences();
+    return models.map((model) => model.toDomain()).toList();
+  }
+
+  @override
+  Future<void> updatePreference(String type, bool isEnabled) =>
+      _remoteDataSource.updatePreference(type, isEnabled);
 }

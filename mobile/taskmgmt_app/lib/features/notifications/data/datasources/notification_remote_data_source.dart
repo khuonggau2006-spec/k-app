@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/network/api_exception.dart';
 import '../models/notification_model.dart';
+import '../models/notification_preference_model.dart';
 
 class PagedNotificationResult {
   const PagedNotificationResult({
@@ -65,6 +66,25 @@ class NotificationRemoteDataSource {
   Future<void> markAllAsRead() async {
     try {
       await _dio.put<void>('/notifications/read-all');
+    } on DioException catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<List<NotificationPreferenceModel>> getPreferences() async {
+    try {
+      final response = await _dio.get<List<dynamic>>('/notifications/preferences');
+      return response.data!
+          .map((json) => NotificationPreferenceModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw mapDioException(e);
+    }
+  }
+
+  Future<void> updatePreference(String type, bool isEnabled) async {
+    try {
+      await _dio.put<void>('/notifications/preferences/$type', data: {'isEnabled': isEnabled});
     } on DioException catch (e) {
       throw mapDioException(e);
     }

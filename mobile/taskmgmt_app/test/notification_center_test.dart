@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:taskmgmt_app/core/models/paged_result.dart';
 import 'package:taskmgmt_app/features/notifications/domain/entities/notification.dart';
+import 'package:taskmgmt_app/features/notifications/domain/entities/notification_preference.dart';
 import 'package:taskmgmt_app/features/notifications/domain/repositories/notification_repository.dart';
 import 'package:taskmgmt_app/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:taskmgmt_app/features/notifications/presentation/screens/notification_center_screen.dart';
@@ -53,6 +54,12 @@ class _FakeNotificationRepository implements NotificationRepository {
       items[i] = items[i].copyWith(isRead: true, readAtUtc: DateTime.now());
     }
   }
+
+  @override
+  Future<List<NotificationPreference>> getPreferences() async => [];
+
+  @override
+  Future<void> updatePreference(String type, bool isEnabled) async {}
 }
 
 Widget _buildScreen(_FakeNotificationRepository repo) => ProviderScope(

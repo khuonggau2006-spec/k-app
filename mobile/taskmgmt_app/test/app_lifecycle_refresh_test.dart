@@ -16,6 +16,7 @@ import 'package:taskmgmt_app/features/locations/domain/entities/location.dart';
 import 'package:taskmgmt_app/features/locations/domain/repositories/location_repository.dart';
 import 'package:taskmgmt_app/features/locations/presentation/providers/location_provider.dart';
 import 'package:taskmgmt_app/features/notifications/domain/entities/notification.dart';
+import 'package:taskmgmt_app/features/notifications/domain/entities/notification_preference.dart';
 import 'package:taskmgmt_app/features/notifications/domain/repositories/notification_repository.dart';
 import 'package:taskmgmt_app/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:taskmgmt_app/features/tasks/domain/entities/work_task.dart';
@@ -121,6 +122,12 @@ class _FakeNotificationRepository implements NotificationRepository {
 
   @override
   Future<void> markAllAsRead() async {}
+
+  @override
+  Future<List<NotificationPreference>> getPreferences() async => [];
+
+  @override
+  Future<void> updatePreference(String type, bool isEnabled) async {}
 }
 
 Widget _buildApp(_FakeNotificationRepository notificationRepo) => ProviderScope(
