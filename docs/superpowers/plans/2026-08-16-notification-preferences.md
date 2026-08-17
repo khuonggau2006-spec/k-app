@@ -34,7 +34,7 @@ Spec đầy đủ: `docs/superpowers/specs/2026-08-16-notification-preferences-d
 - Create (via EF CLI): migration under `backend/src/TaskMgmt.Infrastructure/Persistence/Migrations/`
 
 **Interfaces:**
-- Produces: `NotificationPreference` entity với `UserId (Guid)`, `User? (User)`, `Type (string)`. `IApplicationDbContext.NotificationPreferences : DbSet<NotificationPreference>`. Task 3, 4 tiêu thụ.
+- Produces: `NotificationPreference` entity với `UserId (Guid)`, `User? (User)`, `Type (string)`. `IApplicationDbContext.NotificationPreferences : DbSet<NotificationPreference>`. Task 3 tiêu thụ.
 
 - [ ] **Step 1: Tạo entity `NotificationPreference`**
 
@@ -129,7 +129,7 @@ git commit -m "feat: add NotificationPreference data model and migration"
 - Modify: `backend/src/TaskMgmt.Application/Common/Caching/CacheKeys.cs`
 
 **Interfaces:**
-- Produces: `NotificationTypes.All : IReadOnlyList<string>` (10 loại). `CacheKeys.DisabledNotificationTypes(Guid userId) : string`, `CacheKeys.DisabledNotificationTypesExpiration : TimeSpan`. Task 3, 4, 6 tiêu thụ.
+- Produces: `NotificationTypes.All : IReadOnlyList<string>` (10 loại). `CacheKeys.DisabledNotificationTypes(Guid userId) : string`, `CacheKeys.DisabledNotificationTypesExpiration : TimeSpan`. Task 3, 5 tiêu thụ.
 
 - [ ] **Step 1: Tạo `NotificationTypes`**
 
@@ -189,19 +189,24 @@ git commit -m "feat: add NotificationTypes constant and disabled-types cache key
 
 ---
 
-### Task 3: `GetNotificationPreferencesQuery`
+### Task 3: `GetNotificationPreferencesQuery` + `UpdateNotificationPreferenceCommand`
 
 **Files:**
 - Create: `backend/src/TaskMgmt.Application/Features/Notifications/Common/NotificationPreferenceDto.cs`
 - Create: `backend/src/TaskMgmt.Application/Features/Notifications/Queries/GetNotificationPreferences/GetNotificationPreferencesQuery.cs`
 - Create: `backend/src/TaskMgmt.Application/Features/Notifications/Queries/GetNotificationPreferences/GetNotificationPreferencesQueryHandler.cs`
+- Create: `backend/src/TaskMgmt.Application/Features/Notifications/Commands/UpdateNotificationPreference/UpdateNotificationPreferenceCommand.cs`
+- Create: `backend/src/TaskMgmt.Application/Features/Notifications/Commands/UpdateNotificationPreference/UpdateNotificationPreferenceCommandHandler.cs`
+- Create: `backend/src/TaskMgmt.Application/Features/Notifications/Commands/UpdateNotificationPreference/UpdateNotificationPreferenceCommandValidator.cs`
 - Test: `backend/tests/TaskMgmt.Application.UnitTests/Features/Notifications/NotificationPreferenceTests.cs`
 
 **Interfaces:**
-- Consumes: `NotificationTypes.All` (Task 2), `IApplicationDbContext.NotificationPreferences` (Task 1).
-- Produces: `GetNotificationPreferencesQuery : IRequest<List<NotificationPreferenceDto>>`, `NotificationPreferenceDto(string Type, bool IsEnabled)`. Task 5 (controller) tiêu thụ.
+- Consumes: `NotificationTypes.All`, `CacheKeys.DisabledNotificationTypes(Guid)` (Task 2), `IApplicationDbContext.NotificationPreferences` (Task 1).
+- Produces: `GetNotificationPreferencesQuery : IRequest<List<NotificationPreferenceDto>>`, `NotificationPreferenceDto(string Type, bool IsEnabled)`, `UpdateNotificationPreferenceCommand(string Type, bool IsEnabled) : IRequest`. Task 4 (controller), Task 5 (`NotifyAsync` test) tiêu thụ.
 
-- [ ] **Step 1: Viết test trước**
+GET (query, đọc) và PUT (command, ghi) làm cùng 1 task vì test của một bên cần type của bên kia để xác nhận đúng hành vi (đọc lại sau khi ghi) — tách rời sẽ để lại 1 task với build gãy chờ task kia, vi phạm nguyên tắc mỗi task tự review độc lập được.
+
+- [ ] **Step 1: Viết test trước (toàn bộ, GET lẫn PUT)**
 
 ```csharp
 using MediatR;
@@ -246,172 +251,6 @@ public class NotificationPreferenceTests
         Assert.False(result.Single(p => p.Type == "CommentAdded").IsEnabled);
         Assert.True(result.Single(p => p.Type == "DueSoon").IsEnabled);
     }
-}
-```
-
-- [ ] **Step 2: Chạy test, xác nhận FAIL (chưa có type nào tồn tại)**
-
-Run: `cd backend && dotnet test tests/TaskMgmt.Application.UnitTests --filter "FullyQualifiedName~NotificationPreferenceTests"`
-Expected: FAIL với lỗi biên dịch "GetNotificationPreferencesQuery không tồn tại" (và `UpdateNotificationPreferenceCommand` — sẽ tạo ở Task 4, tạm thời test file này build lỗi cho tới khi Task 4 xong; đây là điểm khác biệt so với TDD từng-task-độc-lập, chấp nhận được vì 2 test cần nhau để cùng xác nhận GET/PUT khớp nhau — xem ghi chú ở Task 4 Step 2).
-
-- [ ] **Step 3: Tạo `NotificationPreferenceDto`**
-
-```csharp
-namespace TaskMgmt.Application.Features.Notifications.Common;
-
-public record NotificationPreferenceDto(string Type, bool IsEnabled);
-```
-
-- [ ] **Step 4: Tạo `GetNotificationPreferencesQuery`**
-
-```csharp
-using MediatR;
-using TaskMgmt.Application.Features.Notifications.Common;
-
-namespace TaskMgmt.Application.Features.Notifications.Queries.GetNotificationPreferences;
-
-public record GetNotificationPreferencesQuery : IRequest<List<NotificationPreferenceDto>>;
-```
-
-- [ ] **Step 5: Tạo handler**
-
-```csharp
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using TaskMgmt.Application.Common.Interfaces;
-using TaskMgmt.Application.Features.Notifications.Common;
-
-namespace TaskMgmt.Application.Features.Notifications.Queries.GetNotificationPreferences;
-
-public class GetNotificationPreferencesQueryHandler(IApplicationDbContext context, ICurrentUserService currentUser)
-    : IRequestHandler<GetNotificationPreferencesQuery, List<NotificationPreferenceDto>>
-{
-    public async Task<List<NotificationPreferenceDto>> Handle(
-        GetNotificationPreferencesQuery request, CancellationToken cancellationToken)
-    {
-        var userId = currentUser.UserId!.Value;
-
-        var disabledTypes = await context.NotificationPreferences
-            .Where(p => p.UserId == userId)
-            .Select(p => p.Type)
-            .ToListAsync(cancellationToken);
-
-        return NotificationTypes.All
-            .Select(type => new NotificationPreferenceDto(type, !disabledTypes.Contains(type)))
-            .ToList();
-    }
-}
-```
-
-(Query này đọc thẳng DB, không qua cache-aside — đây không phải hot path như `NotifyAsync`, chỉ gọi khi user mở màn cài đặt.)
-
-- [ ] **Step 6: Build (test vẫn FAIL vì thiếu `UpdateNotificationPreferenceCommand` ở Task 4)**
-
-Run: `cd backend && dotnet build TaskMgmt.slnx`
-Expected: build LỖI — thiếu `TaskMgmt.Application.Features.Notifications.Commands.UpdateNotificationPreference`. Bình thường, tiếp tục sang Task 4 ngay để hoàn thiện file test này.
-
-- [ ] **Step 7: Commit (commit code chính, chưa commit test — test sẽ commit cùng Task 4 khi build xanh)**
-
-```bash
-cd d:/projects/K-app
-git add backend/src/TaskMgmt.Application/Features/Notifications/Common/NotificationPreferenceDto.cs backend/src/TaskMgmt.Application/Features/Notifications/Queries/GetNotificationPreferences/
-git commit -m "feat: add GetNotificationPreferencesQuery"
-```
-
----
-
-### Task 4: `UpdateNotificationPreferenceCommand`
-
-**Files:**
-- Create: `backend/src/TaskMgmt.Application/Features/Notifications/Commands/UpdateNotificationPreference/UpdateNotificationPreferenceCommand.cs`
-- Create: `backend/src/TaskMgmt.Application/Features/Notifications/Commands/UpdateNotificationPreference/UpdateNotificationPreferenceCommandHandler.cs`
-- Create: `backend/src/TaskMgmt.Application/Features/Notifications/Commands/UpdateNotificationPreference/UpdateNotificationPreferenceCommandValidator.cs`
-- Modify: `backend/tests/TaskMgmt.Application.UnitTests/Features/Notifications/NotificationPreferenceTests.cs` (đã tạo ở Task 3, giờ hoàn thiện)
-
-**Interfaces:**
-- Consumes: `NotificationTypes.All`, `CacheKeys.DisabledNotificationTypes(Guid)` (Task 2), `IApplicationDbContext.NotificationPreferences` (Task 1).
-- Produces: `UpdateNotificationPreferenceCommand(string Type, bool IsEnabled) : IRequest`. Task 5 (controller), Task 6 (test gián tiếp qua NotifyAsync) tiêu thụ.
-
-- [ ] **Step 1: Tạo `UpdateNotificationPreferenceCommand`**
-
-```csharp
-using MediatR;
-
-namespace TaskMgmt.Application.Features.Notifications.Commands.UpdateNotificationPreference;
-
-public record UpdateNotificationPreferenceCommand(string Type, bool IsEnabled) : IRequest;
-```
-
-- [ ] **Step 2: Tạo handler**
-
-```csharp
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using TaskMgmt.Application.Common.Caching;
-using TaskMgmt.Application.Common.Interfaces;
-using TaskMgmt.Domain.Entities;
-
-namespace TaskMgmt.Application.Features.Notifications.Commands.UpdateNotificationPreference;
-
-public class UpdateNotificationPreferenceCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, ICacheService cache)
-    : IRequestHandler<UpdateNotificationPreferenceCommand>
-{
-    public async Task Handle(UpdateNotificationPreferenceCommand request, CancellationToken cancellationToken)
-    {
-        var userId = currentUser.UserId!.Value;
-
-        var existing = await context.NotificationPreferences
-            .FirstOrDefaultAsync(p => p.UserId == userId && p.Type == request.Type, cancellationToken);
-
-        if (request.IsEnabled)
-        {
-            // Bật lại = xoá row "đã tắt" nếu có. Đã bật sẵn (không có row) -> không làm gì, idempotent.
-            if (existing is not null)
-            {
-                context.NotificationPreferences.Remove(existing);
-            }
-        }
-        else if (existing is null)
-        {
-            // Tắt lần đầu = tạo row. Đã tắt sẵn -> không làm gì, idempotent.
-            context.NotificationPreferences.Add(new NotificationPreference { UserId = userId, Type = request.Type });
-        }
-
-        await context.SaveChangesAsync(cancellationToken);
-        await cache.RemoveAsync(CacheKeys.DisabledNotificationTypes(userId), cancellationToken);
-    }
-}
-```
-
-- [ ] **Step 3: Tạo validator**
-
-```csharp
-using FluentValidation;
-using TaskMgmt.Application.Features.Notifications.Common;
-
-namespace TaskMgmt.Application.Features.Notifications.Commands.UpdateNotificationPreference;
-
-public class UpdateNotificationPreferenceCommandValidator : AbstractValidator<UpdateNotificationPreferenceCommand>
-{
-    public UpdateNotificationPreferenceCommandValidator()
-    {
-        RuleFor(x => x.Type)
-            .Must(type => NotificationTypes.All.Contains(type))
-            .WithMessage("Loại thông báo không hợp lệ.");
-    }
-}
-```
-
-- [ ] **Step 4: Chạy lại test của Task 3 (giờ đã build được), xác nhận PASS**
-
-Run: `cd backend && dotnet test tests/TaskMgmt.Application.UnitTests --filter "FullyQualifiedName~NotificationPreferenceTests"`
-Expected: PASS (2/2) — `GetPreferences_NoRowsDisabled_AllTenEnabled`, `GetPreferences_SomeDisabled_ReflectsState`.
-
-- [ ] **Step 5: Thêm test riêng cho `UpdateNotificationPreferenceCommandHandler`**
-
-Thêm vào cuối class `NotificationPreferenceTests` (file đã tạo ở Task 3):
-
-```csharp
 
     [Fact]
     public async Task UpdatePreference_DisableTwice_Idempotent()
@@ -464,33 +303,158 @@ Thêm vào cuối class `NotificationPreferenceTests` (file đã tạo ở Task 
         await Assert.ThrowsAsync<ValidationException>(
             () => sender.Send(new UpdateNotificationPreferenceCommand("KhongTonTai", false)));
     }
+}
 ```
 
-Không cần thêm using mới ở bước này — `AppDbContext` đã resolve được nhờ `using TaskMgmt.Infrastructure.Persistence;` thêm ở Task 3 Step 1.
+- [ ] **Step 2: Chạy test, xác nhận FAIL**
 
-- [ ] **Step 6: Chạy toàn bộ file test, xác nhận PASS**
+Run: `cd backend && dotnet test tests/TaskMgmt.Application.UnitTests --filter "FullyQualifiedName~NotificationPreferenceTests"`
+Expected: FAIL với lỗi biên dịch — `GetNotificationPreferencesQuery`, `UpdateNotificationPreferenceCommand`, `NotificationPreferenceDto` chưa tồn tại.
+
+- [ ] **Step 3: Tạo `NotificationPreferenceDto`**
+
+```csharp
+namespace TaskMgmt.Application.Features.Notifications.Common;
+
+public record NotificationPreferenceDto(string Type, bool IsEnabled);
+```
+
+- [ ] **Step 4: Tạo `GetNotificationPreferencesQuery`**
+
+```csharp
+using MediatR;
+using TaskMgmt.Application.Features.Notifications.Common;
+
+namespace TaskMgmt.Application.Features.Notifications.Queries.GetNotificationPreferences;
+
+public record GetNotificationPreferencesQuery : IRequest<List<NotificationPreferenceDto>>;
+```
+
+- [ ] **Step 5: Tạo handler cho query**
+
+```csharp
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using TaskMgmt.Application.Common.Interfaces;
+using TaskMgmt.Application.Features.Notifications.Common;
+
+namespace TaskMgmt.Application.Features.Notifications.Queries.GetNotificationPreferences;
+
+public class GetNotificationPreferencesQueryHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+    : IRequestHandler<GetNotificationPreferencesQuery, List<NotificationPreferenceDto>>
+{
+    public async Task<List<NotificationPreferenceDto>> Handle(
+        GetNotificationPreferencesQuery request, CancellationToken cancellationToken)
+    {
+        var userId = currentUser.UserId!.Value;
+
+        var disabledTypes = await context.NotificationPreferences
+            .Where(p => p.UserId == userId)
+            .Select(p => p.Type)
+            .ToListAsync(cancellationToken);
+
+        return NotificationTypes.All
+            .Select(type => new NotificationPreferenceDto(type, !disabledTypes.Contains(type)))
+            .ToList();
+    }
+}
+```
+
+(Query này đọc thẳng DB, không qua cache-aside — đây không phải hot path như `NotifyAsync`, chỉ gọi khi user mở màn cài đặt.)
+
+- [ ] **Step 6: Tạo `UpdateNotificationPreferenceCommand`**
+
+```csharp
+using MediatR;
+
+namespace TaskMgmt.Application.Features.Notifications.Commands.UpdateNotificationPreference;
+
+public record UpdateNotificationPreferenceCommand(string Type, bool IsEnabled) : IRequest;
+```
+
+- [ ] **Step 7: Tạo handler cho command**
+
+```csharp
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using TaskMgmt.Application.Common.Caching;
+using TaskMgmt.Application.Common.Interfaces;
+using TaskMgmt.Domain.Entities;
+
+namespace TaskMgmt.Application.Features.Notifications.Commands.UpdateNotificationPreference;
+
+public class UpdateNotificationPreferenceCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser, ICacheService cache)
+    : IRequestHandler<UpdateNotificationPreferenceCommand>
+{
+    public async Task Handle(UpdateNotificationPreferenceCommand request, CancellationToken cancellationToken)
+    {
+        var userId = currentUser.UserId!.Value;
+
+        var existing = await context.NotificationPreferences
+            .FirstOrDefaultAsync(p => p.UserId == userId && p.Type == request.Type, cancellationToken);
+
+        if (request.IsEnabled)
+        {
+            // Bật lại = xoá row "đã tắt" nếu có. Đã bật sẵn (không có row) -> không làm gì, idempotent.
+            if (existing is not null)
+            {
+                context.NotificationPreferences.Remove(existing);
+            }
+        }
+        else if (existing is null)
+        {
+            // Tắt lần đầu = tạo row. Đã tắt sẵn -> không làm gì, idempotent.
+            context.NotificationPreferences.Add(new NotificationPreference { UserId = userId, Type = request.Type });
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        await cache.RemoveAsync(CacheKeys.DisabledNotificationTypes(userId), cancellationToken);
+    }
+}
+```
+
+- [ ] **Step 8: Tạo validator**
+
+```csharp
+using FluentValidation;
+using TaskMgmt.Application.Features.Notifications.Common;
+
+namespace TaskMgmt.Application.Features.Notifications.Commands.UpdateNotificationPreference;
+
+public class UpdateNotificationPreferenceCommandValidator : AbstractValidator<UpdateNotificationPreferenceCommand>
+{
+    public UpdateNotificationPreferenceCommandValidator()
+    {
+        RuleFor(x => x.Type)
+            .Must(type => NotificationTypes.All.Contains(type))
+            .WithMessage("Loại thông báo không hợp lệ.");
+    }
+}
+```
+
+- [ ] **Step 9: Chạy lại test, xác nhận PASS**
 
 Run: `cd backend && dotnet test tests/TaskMgmt.Application.UnitTests --filter "FullyQualifiedName~NotificationPreferenceTests"`
 Expected: PASS (6/6).
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
 cd d:/projects/K-app
-git add backend/src/TaskMgmt.Application/Features/Notifications/Commands/UpdateNotificationPreference/ backend/tests/TaskMgmt.Application.UnitTests/Features/Notifications/NotificationPreferenceTests.cs
-git commit -m "feat: add UpdateNotificationPreferenceCommand with tests"
+git add backend/src/TaskMgmt.Application/Features/Notifications/Common/NotificationPreferenceDto.cs backend/src/TaskMgmt.Application/Features/Notifications/Queries/GetNotificationPreferences/ backend/src/TaskMgmt.Application/Features/Notifications/Commands/UpdateNotificationPreference/ backend/tests/TaskMgmt.Application.UnitTests/Features/Notifications/NotificationPreferenceTests.cs
+git commit -m "feat: add GetNotificationPreferencesQuery and UpdateNotificationPreferenceCommand"
 ```
 
 ---
 
-### Task 5: Wire `NotificationsController`
+### Task 4: Wire `NotificationsController`
 
 **Files:**
 - Modify: `backend/src/TaskMgmt.API/Controllers/NotificationsController.cs`
 
 **Interfaces:**
-- Consumes: `GetNotificationPreferencesQuery` (Task 3), `UpdateNotificationPreferenceCommand` (Task 4).
-- Produces: `GET api/v1/notifications/preferences`, `PUT api/v1/notifications/preferences/{type}`. Task 7 (mobile datasource) tiêu thụ qua HTTP.
+- Consumes: `GetNotificationPreferencesQuery`, `UpdateNotificationPreferenceCommand` (Task 3).
+- Produces: `GET api/v1/notifications/preferences`, `PUT api/v1/notifications/preferences/{type}`. Task 6 (mobile datasource) tiêu thụ qua HTTP.
 
 - [ ] **Step 1: Thêm using**
 
@@ -552,7 +516,7 @@ git commit -m "feat: wire notification preference endpoints"
 
 ---
 
-### Task 6: `TaskNotificationHelper.NotifyAsync` tôn trọng preference
+### Task 5: `TaskNotificationHelper.NotifyAsync` tôn trọng preference
 
 **Files:**
 - Modify: `backend/src/TaskMgmt.Application/Features/Notifications/Common/TaskNotificationHelper.cs`
@@ -686,7 +650,7 @@ Expected: PASS toàn bộ (8/8 - 6 test cũ + 2 test mới).
 - [ ] **Step 5: Chạy toàn bộ test suite backend, xác nhận không phá vỡ gì khác**
 
 Run: `cd backend && dotnet test TaskMgmt.slnx`
-Expected: PASS toàn bộ.
+Expected: `Domain.UnitTests` + `Application.UnitTests` PASS toàn bộ. `API.IntegrationTests` vẫn FAIL 11/11 với lỗi "Connection string 'Postgres' not found" — đây là baseline có sẵn từ trước (cần Docker Postgres chạy, không liên quan tới thay đổi của task này), không phải regression.
 
 - [ ] **Step 6: Commit**
 
@@ -700,7 +664,7 @@ git commit -m "feat: skip push (keep in-app) when recipient disabled the notific
 
 ## Mobile
 
-### Task 7: Domain entity + mở rộng `NotificationRepository`
+### Task 6: Domain entity + mở rộng `NotificationRepository`
 
 **Files:**
 - Create: `mobile/taskmgmt_app/lib/features/notifications/domain/entities/notification_preference.dart`
@@ -711,7 +675,7 @@ git commit -m "feat: skip push (keep in-app) when recipient disabled the notific
 - Modify: `mobile/taskmgmt_app/test/notification_center_test.dart`
 
 **Interfaces:**
-- Produces: `NotificationPreference { type, isEnabled }` (+ `label` getter tiếng Việt), `NotificationRepository.getPreferences() : Future<List<NotificationPreference>>`, `NotificationRepository.updatePreference(String type, bool isEnabled) : Future<void>`. Task 8 tiêu thụ.
+- Produces: `NotificationPreference { type, isEnabled }` (+ `label` getter tiếng Việt), `NotificationRepository.getPreferences() : Future<List<NotificationPreference>>`, `NotificationRepository.updatePreference(String type, bool isEnabled) : Future<void>`. Task 7 tiêu thụ.
 
 - [ ] **Step 1: Tạo domain entity `NotificationPreference`**
 
@@ -849,14 +813,14 @@ git commit -m "feat(mobile): add notification preference entity and repository c
 
 ---
 
-### Task 8: `preferences_provider.dart`
+### Task 7: `preferences_provider.dart`
 
 **Files:**
 - Create: `mobile/taskmgmt_app/lib/features/notifications/presentation/providers/preferences_provider.dart`
 
 **Interfaces:**
-- Consumes: `notificationRepositoryProvider` (đã có sẵn trong `notification_provider.dart`), `NotificationRepository.getPreferences()`/`updatePreference()` (Task 7).
-- Produces: `notificationPreferencesProvider : AsyncNotifierProvider<NotificationPreferencesController, List<NotificationPreference>>`, `NotificationPreferencesController.toggle(String type, bool isEnabled) : Future<void>`. Task 9 tiêu thụ.
+- Consumes: `notificationRepositoryProvider` (đã có sẵn trong `notification_provider.dart`), `NotificationRepository.getPreferences()`/`updatePreference()` (Task 6).
+- Produces: `notificationPreferencesProvider : AsyncNotifierProvider<NotificationPreferencesController, List<NotificationPreference>>`, `NotificationPreferencesController.toggle(String type, bool isEnabled) : Future<void>`. Task 8 tiêu thụ.
 
 - [ ] **Step 1: Tạo provider**
 
@@ -911,7 +875,7 @@ git commit -m "feat(mobile): add notification preferences provider with optimist
 
 ---
 
-### Task 9: Màn hình `notification_preferences_screen.dart`
+### Task 8: Màn hình `notification_preferences_screen.dart`
 
 **Files:**
 - Create: `mobile/taskmgmt_app/lib/features/notifications/presentation/screens/notification_preferences_screen.dart`
@@ -920,7 +884,7 @@ git commit -m "feat(mobile): add notification preferences provider with optimist
 - Test: `mobile/taskmgmt_app/test/notification_preferences_test.dart`
 
 **Interfaces:**
-- Consumes: `notificationPreferencesProvider`, `NotificationPreferencesController.toggle` (Task 8), `NotificationPreference.label` (Task 7).
+- Consumes: `notificationPreferencesProvider`, `NotificationPreferencesController.toggle` (Task 7), `NotificationPreference.label` (Task 6).
 
 - [ ] **Step 1: Viết widget test trước**
 
@@ -1134,6 +1098,7 @@ git commit -m "feat(mobile): add notification preferences screen"
 
 ## Self-Review Notes
 
-- **Spec coverage:** Task 1 → data model (spec §4); Task 2 → hằng số `NotificationTypes` + cache key (spec §3, §4); Task 3, 5 → `GET /notifications/preferences` (spec §5); Task 4, 5 → `PUT /notifications/preferences/{type}` (spec §5); Task 6 → sửa `NotifyAsync` giữ in-app/chặn push (spec §3, §5); Task 7, 8, 9 → toàn bộ mobile (spec §6), gồm cả việc sửa `_FakeNotificationRepository` hiện có mà spec không nêu rõ nhưng bắt buộc để không phá vỡ build (phát hiện khi rà lại `notification_center_test.dart`). Test backend + mobile ở spec §7 đều có task tương ứng (Task 3–4, 6 cho backend; Task 9 cho mobile widget test).
+- **Spec coverage:** Task 1 → data model (spec §4); Task 2 → hằng số `NotificationTypes` + cache key (spec §3, §4); Task 3 → `GET`/`PUT /notifications/preferences` gộp chung vì test 2 chiều phụ thuộc lẫn nhau (spec §5); Task 4 → wire controller; Task 5 → sửa `NotifyAsync` giữ in-app/chặn push (spec §3, §5); Task 6, 7, 8 → toàn bộ mobile (spec §6), gồm cả việc sửa `_FakeNotificationRepository` hiện có mà spec không nêu rõ nhưng bắt buộc để không phá vỡ build (phát hiện khi rà lại `notification_center_test.dart`). Test backend + mobile ở spec §7 đều có task tương ứng (Task 3, 5 cho backend; Task 8 cho mobile widget test).
 - **Placeholder scan:** không còn "TBD"/"implement later" — mọi step đều có code đầy đủ, kể cả 3 file test lớn.
-- **Type consistency:** đã đối chiếu chữ ký thật `TaskNotificationHelper.NotifyAsync`, `ICacheService.GetOrSetAsync`, `IBackgroundJobScheduler.EnqueuePushNotification`, `NotificationRepository`/`NotificationRepositoryImpl`/`NotificationRemoteDataSource` với source hiện có trong repo trước khi viết plan (không suy đoán). `NotificationPreference` (entity mới) và `NotificationPreferenceDto`/`NotificationPreferenceModel` giữ nhất quán field `type`/`isEnabled` xuyên suốt Task 3–9. Task 8 `toggle(type, isEnabled)` khớp đúng tên tham số Task 9 gọi.
+- **Type consistency:** đã đối chiếu chữ ký thật `TaskNotificationHelper.NotifyAsync`, `ICacheService.GetOrSetAsync`, `IBackgroundJobScheduler.EnqueuePushNotification`, `NotificationRepository`/`NotificationRepositoryImpl`/`NotificationRemoteDataSource` với source hiện có trong repo trước khi viết plan (không suy đoán). `NotificationPreference` (entity mới) và `NotificationPreferenceDto`/`NotificationPreferenceModel` giữ nhất quán field `type`/`isEnabled` xuyên suốt Task 3–8. Task 7 `toggle(type, isEnabled)` khớp đúng tên tham số Task 8 gọi.
+- **Task-splitting fix (pre-flight, trước khi dispatch Task 1):** bản gốc tách Task 3 (GET) và Task 4 (PUT) riêng, để lại build gãy có chủ đích giữa 2 task — vi phạm nguyên tắc "mỗi task tự review độc lập được". Đã gộp lại thành 1 Task 3 duy nhất (8 task tổng thay vì 9), xác nhận với người dùng trước khi thực thi.
