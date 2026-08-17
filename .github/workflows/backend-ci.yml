@@ -26,10 +26,10 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Restore
-        run: dotnet restore TaskMgmt.sln
+        run: dotnet restore TaskMgmt.slnx
 
       - name: Build
-        run: dotnet build TaskMgmt.sln --no-restore -c Release
+        run: dotnet build TaskMgmt.slnx --no-restore -c Release
 
       - name: Test
-        run: dotnet test TaskMgmt.sln --no-build -c Release --logger "trx"
+        run: dotnet test TaskMgmt.slnx --no-build -c Release --logger "trx"
