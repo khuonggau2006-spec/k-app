@@ -41,6 +41,11 @@ public class TaskMgmtApiFactory : WebApplicationFactory<Program>
                 ["Storage:AccessKey"] = "test",
                 ["Storage:SecretKey"] = "test",
                 ["Storage:BucketName"] = "test-bucket",
+                // Giá trị giả có chủ đích: AddInfrastructure() ném lỗi ngay nếu thiếu key này, TRƯỚC
+                // khi ConfigureServices bên dưới kịp thay AppDbContext bằng EF InMemory - nên chỉ cần
+                // một chuỗi hợp lệ về cú pháp để qua bước đăng ký UseNpgsql, không cần Postgres thật
+                // đang chạy (không có bước nào thực sự kết nối tới đây).
+                ["ConnectionStrings:Postgres"] = "Host=localhost;Database=taskmgmt-integration-tests-unused;Username=test;Password=test",
                 // Rỗng có chủ đích: SignalR chạy in-process trong 1 TestServer duy nhất, backplane
                 // Redis chỉ có ý nghĩa khi fan-out giữa nhiều server thật nên không cần cho test.
                 ["ConnectionStrings:Redis"] = "",
