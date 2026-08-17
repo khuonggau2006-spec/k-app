@@ -1,16 +1,14 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/network/api_exception.dart';
 import '../../../../shared/widgets/inline_empty_state.dart';
 import '../../domain/entities/attachment.dart';
 import '../providers/attachment_provider.dart';
+import '../utils/attachment_temp_file.dart';
 
 String _formatSize(int bytes) {
   if (bytes < 1024) return '$bytes B';
@@ -62,12 +60,11 @@ class _AttachmentListSectionState extends ConsumerState<AttachmentListSection> {
   Future<void> _openAttachment(Attachment attachment) async {
     setState(() => _openingAttachmentId = attachment.id);
     try {
-      final bytes = await ref.read(attachmentsProvider(widget.taskId).notifier).downloadAttachment(attachment.id);
-
-      final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/attachments/${attachment.id}_${attachment.fileName}');
-      await file.create(recursive: true);
-      await file.writeAsBytes(bytes);
+      final file = await downloadAttachmentToTempFile(
+        download: () => ref.read(attachmentsProvider(widget.taskId).notifier).downloadAttachment(attachment.id),
+        attachmentId: attachment.id,
+        fileName: attachment.fileName,
+      );
 
       final result = await OpenFilex.open(file.path);
       if (result.type != ResultType.done && mounted) {
