@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskMgmt.Application.Common.Caching;
+using TaskMgmt.Application.Common.Extensions;
 using TaskMgmt.Application.Common.Interfaces;
 using TaskMgmt.Domain.Entities;
 
@@ -48,6 +49,17 @@ public static class TaskNotificationHelper
         });
 
         await cache.RemoveAsync(CacheKeys.UnreadNotificationCount(userId), cancellationToken);
+
+        var disabledTypes = await cache.GetOrSetAsync(
+            CacheKeys.DisabledNotificationTypes(userId),
+            CacheKeys.DisabledNotificationTypesExpiration,
+            () => context.NotificationPreferences.Where(p => p.UserId == userId).Select(p => p.Type).ToListAsync(cancellationToken),
+            cancellationToken);
+
+        if (disabledTypes.Contains(type))
+        {
+            return;
+        }
 
         var data = new Dictionary<string, string> { ["type"] = type };
         if (workTaskId is not null)

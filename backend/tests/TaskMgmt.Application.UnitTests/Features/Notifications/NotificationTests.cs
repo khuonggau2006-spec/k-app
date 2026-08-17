@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using TaskMgmt.Application.Common.Exceptions;
+using TaskMgmt.Application.Common.Interfaces;
 using TaskMgmt.Application.Features.Comments.Commands.CreateComment;
 using TaskMgmt.Application.Features.Notifications.Commands.MarkAllNotificationsAsRead;
 using TaskMgmt.Application.Features.Notifications.Commands.MarkNotificationAsRead;
@@ -156,5 +157,61 @@ public class NotificationTests
 
         var unreadCount = await sender.Send(new GetUnreadNotificationCountQuery());
         Assert.Equal(0, unreadCount);
+    }
+
+    [Fact]
+    public async Task NotifyAsync_TypeDisabled_StillCreatesNotification_ButSkipsPush()
+    {
+        var actorId = Guid.NewGuid();
+        await using var provider = TestServiceProviderFactory.Create(actorId, SystemRole.Member);
+        var sender = provider.GetRequiredService<ISender>();
+        var context = provider.GetRequiredService<AppDbContext>();
+        var jobScheduler = (FakeBackgroundJobScheduler)provider.GetRequiredService<IBackgroundJobScheduler>();
+
+        var task = await sender.Send(new CreateWorkTaskCommand("Task with comment", null, null, null, null));
+        var otherUser = TestDataFactory.CreateUser("other2@example.com");
+        context.Users.Add(otherUser);
+        await context.SaveChangesAsync(default);
+
+        // otherUser tắt push cho CommentAdded - preference của actor không liên quan, phải đúng
+        // preference của NGƯỜI NHẬN (otherUser), không phải người tạo bình luận (actor). Ghi
+        // preference TRƯỚC khi AddTaskAssigneeCommand chạy: lệnh này cũng gọi NotifyAsync (báo
+        // "AssigneeAdded") cho otherUser, và đó là lần đầu tiên cache "disabled types" của
+        // otherUser được nạp (cache-aside, TTL 5 phút) - nếu ghi preference SAU đó, cache đã lỡ
+        // nạp danh sách rỗng từ trước và sẽ không thấy preference mới thêm.
+        context.NotificationPreferences.Add(
+            new Domain.Entities.NotificationPreference { UserId = otherUser.Id, Type = "CommentAdded" });
+        await context.SaveChangesAsync(default);
+
+        await sender.Send(new AddTaskAssigneeCommand(task.Id, otherUser.Id, TaskAssigneeRole.Watcher));
+        jobScheduler.Enqueued.Clear();
+
+        await sender.Send(new CreateCommentCommand(task.Id, "Bình luận test.", []));
+
+        var notification = Assert.Single(context.Notifications, n => n.Type == "CommentAdded");
+        Assert.Equal(otherUser.Id, notification.UserId);
+        Assert.DoesNotContain(jobScheduler.Enqueued, e => e.UserId == otherUser.Id);
+    }
+
+    [Fact]
+    public async Task NotifyAsync_TypeNotDisabled_CreatesNotificationAndEnqueuesPush()
+    {
+        var actorId = Guid.NewGuid();
+        await using var provider = TestServiceProviderFactory.Create(actorId, SystemRole.Member);
+        var sender = provider.GetRequiredService<ISender>();
+        var context = provider.GetRequiredService<AppDbContext>();
+        var jobScheduler = (FakeBackgroundJobScheduler)provider.GetRequiredService<IBackgroundJobScheduler>();
+
+        var task = await sender.Send(new CreateWorkTaskCommand("Task with comment", null, null, null, null));
+        var otherUser = TestDataFactory.CreateUser("other3@example.com");
+        context.Users.Add(otherUser);
+        await context.SaveChangesAsync(default);
+        await sender.Send(new AddTaskAssigneeCommand(task.Id, otherUser.Id, TaskAssigneeRole.Watcher));
+        jobScheduler.Enqueued.Clear();
+
+        await sender.Send(new CreateCommentCommand(task.Id, "Bình luận test.", []));
+
+        Assert.Single(context.Notifications, n => n.Type == "CommentAdded" && n.UserId == otherUser.Id);
+        Assert.Contains(jobScheduler.Enqueued, e => e.UserId == otherUser.Id);
     }
 }
