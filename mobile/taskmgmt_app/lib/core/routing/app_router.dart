@@ -8,6 +8,7 @@ import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/locations/presentation/screens/location_list_screen.dart';
 import '../../features/notifications/presentation/screens/notification_center_screen.dart';
+import '../../features/notifications/presentation/screens/notification_preferences_screen.dart';
 import '../../features/tasks/presentation/screens/task_list_screen.dart';
 import '../../features/tasks/presentation/screens/work_task_detail_screen.dart';
 
@@ -65,6 +66,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: NotificationCenterScreen.path,
         name: NotificationCenterScreen.name,
         builder: (context, state) => const NotificationCenterScreen(),
+      ),
+      GoRoute(
+        path: NotificationPreferencesScreen.path,
+        name: NotificationPreferencesScreen.name,
+        builder: (context, state) => const NotificationPreferencesScreen(),
       ),
       GoRoute(
         path: DashboardScreen.path,

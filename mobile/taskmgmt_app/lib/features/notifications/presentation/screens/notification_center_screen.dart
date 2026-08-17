@@ -9,6 +9,7 @@ import '../../../../shared/widgets/error_state_view.dart';
 import '../../domain/entities/notification.dart';
 import '../providers/notification_provider.dart';
 import '../widgets/notification_list_item.dart';
+import 'notification_preferences_screen.dart';
 
 class NotificationCenterScreen extends ConsumerWidget {
   const NotificationCenterScreen({super.key});
@@ -61,6 +62,11 @@ class NotificationCenterScreen extends ConsumerWidget {
             icon: const Icon(Icons.done_all),
             tooltip: 'Đánh dấu tất cả đã đọc',
             onPressed: () => _handleMarkAllAsRead(context, ref),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Cài đặt thông báo',
+            onPressed: () => context.push(NotificationPreferencesScreen.path),
           ),
         ],
       ),
