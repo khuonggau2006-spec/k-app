@@ -21,8 +21,15 @@ class ImageGalleryView extends ConsumerStatefulWidget {
 }
 
 class _ImageGalleryViewState extends ConsumerState<ImageGalleryView> {
+  late final PageController _pageController = PageController(initialPage: widget.initialIndex);
   final Map<String, Uint8List> _cache = {};
   final Map<String, Future<Uint8List>> _inFlight = {};
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   // Cache theo id + gộp các lần gọi trùng nhau khi widget rebuild - tránh tải lại khi lướt qua
   // lướt lại (FutureBuilder coi 2 Future khác instance là 2 lần tải khác nhau dù cùng ảnh).
@@ -44,7 +51,7 @@ class _ImageGalleryViewState extends ConsumerState<ImageGalleryView> {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
-      controller: PageController(initialPage: widget.initialIndex),
+      controller: _pageController,
       itemCount: widget.images.length,
       itemBuilder: (context, index) {
         final image = widget.images[index];

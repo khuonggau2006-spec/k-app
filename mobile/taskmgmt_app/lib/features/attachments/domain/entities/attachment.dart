@@ -22,4 +22,6 @@ class Attachment {
   final DateTime createdAtUtc;
 
   bool get isImage => contentType.startsWith('image/');
+
+  bool get canPreviewInApp => isImage || contentType == 'application/pdf' || contentType.startsWith('video/');
 }

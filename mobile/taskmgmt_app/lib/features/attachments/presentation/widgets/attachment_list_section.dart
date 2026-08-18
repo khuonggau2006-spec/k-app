@@ -59,9 +59,7 @@ class _AttachmentListSectionState extends ConsumerState<AttachmentListSection> {
   }
 
   Future<void> _openAttachment(Attachment attachment) async {
-    if (attachment.isImage ||
-        attachment.contentType == 'application/pdf' ||
-        attachment.contentType.startsWith('video/')) {
+    if (attachment.canPreviewInApp) {
       context.push('/tasks/${widget.taskId}/attachments/${attachment.id}');
       return;
     }

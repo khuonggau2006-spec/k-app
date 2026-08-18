@@ -37,4 +37,19 @@ void main() {
       throwsException,
     );
   });
+
+  test('Sanitizes a fileName containing path traversal sequences to its last segment', () async {
+    final bytes = Uint8List.fromList([9, 9, 9]);
+
+    final file = await downloadAttachmentToTempFile(
+      download: () async => bytes,
+      attachmentId: 'a3',
+      fileName: '../../../evil.png',
+    );
+
+    expect(file.path, endsWith('attachments/a3_evil.png'));
+    expect(file.path.contains('..'), isFalse);
+
+    await file.parent.delete(recursive: true);
+  });
 }
