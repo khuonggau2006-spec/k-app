@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/attachments/presentation/screens/attachment_viewer_screen.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -61,6 +62,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/tasks/:id',
         name: WorkTaskDetailScreen.name,
         builder: (context, state) => WorkTaskDetailScreen(taskId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/tasks/:taskId/attachments/:attachmentId',
+        name: AttachmentViewerScreen.name,
+        builder: (context, state) => AttachmentViewerScreen(
+          taskId: state.pathParameters['taskId']!,
+          attachmentId: state.pathParameters['attachmentId']!,
+        ),
       ),
       GoRoute(
         path: NotificationCenterScreen.path,
