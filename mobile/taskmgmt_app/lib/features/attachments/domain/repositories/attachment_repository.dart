@@ -9,6 +9,7 @@ abstract class AttachmentRepository {
     required String workTaskId,
     required String fileName,
     required Uint8List bytes,
+    void Function(int sent, int total)? onSendProgress,
   });
 
   Future<Uint8List> downloadAttachment({required String workTaskId, required String attachmentId});

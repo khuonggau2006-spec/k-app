@@ -22,8 +22,17 @@ class AttachmentsController extends FamilyAsyncNotifier<List<Attachment>, String
     state = await AsyncValue.guard(() => ref.read(attachmentRepositoryProvider).getAttachments(arg));
   }
 
-  Future<void> uploadAttachment({required String fileName, required Uint8List bytes}) async {
-    await ref.read(attachmentRepositoryProvider).uploadAttachment(workTaskId: arg, fileName: fileName, bytes: bytes);
+  Future<void> uploadAttachment({
+    required String fileName,
+    required Uint8List bytes,
+    void Function(int sent, int total)? onSendProgress,
+  }) async {
+    await ref.read(attachmentRepositoryProvider).uploadAttachment(
+          workTaskId: arg,
+          fileName: fileName,
+          bytes: bytes,
+          onSendProgress: onSendProgress,
+        );
     await refresh();
   }
 

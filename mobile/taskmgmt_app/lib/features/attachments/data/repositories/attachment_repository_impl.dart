@@ -20,8 +20,14 @@ class AttachmentRepositoryImpl implements AttachmentRepository {
     required String workTaskId,
     required String fileName,
     required Uint8List bytes,
+    void Function(int sent, int total)? onSendProgress,
   }) async {
-    final model = await _remoteDataSource.uploadAttachment(workTaskId: workTaskId, fileName: fileName, bytes: bytes);
+    final model = await _remoteDataSource.uploadAttachment(
+      workTaskId: workTaskId,
+      fileName: fileName,
+      bytes: bytes,
+      onSendProgress: onSendProgress,
+    );
     return model.toDomain();
   }
 

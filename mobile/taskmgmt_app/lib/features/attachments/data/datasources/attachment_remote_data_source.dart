@@ -23,6 +23,7 @@ class AttachmentRemoteDataSource {
     required String workTaskId,
     required String fileName,
     required Uint8List bytes,
+    void Function(int sent, int total)? onSendProgress,
   }) async {
     try {
       final formData = FormData.fromMap({
@@ -31,6 +32,7 @@ class AttachmentRemoteDataSource {
       final response = await _dio.post<Map<String, dynamic>>(
         '/worktasks/$workTaskId/attachments',
         data: formData,
+        onSendProgress: onSendProgress,
       );
       return AttachmentModel.fromJson(response.data!);
     } on DioException catch (e) {
