@@ -29,6 +29,17 @@ IconData _iconFor(String contentType) {
   return Icons.insert_drive_file_outlined;
 }
 
+/// Lỗi tải lên đã được dịch sang thông báo thân thiện. [runUploadQueue] hiển thị lỗi bằng
+/// `e.toString()`, nên toString() ở đây trả về đúng thông báo, không kèm tiền tố "Exception:".
+class _UploadFailure implements Exception {
+  _UploadFailure(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
 class AttachmentListSection extends ConsumerStatefulWidget {
   const AttachmentListSection({super.key, required this.taskId});
 
@@ -42,25 +53,49 @@ class _AttachmentListSectionState extends ConsumerState<AttachmentListSection> {
   List<UploadQueueItem> _queue = [];
   String? _openingAttachmentId;
 
+  /// SnackBar hiện trên Scaffold phía sau bottom sheet, nên gọi được ngay cả khi sheet còn mở.
+  void _showPickerError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  // Ba hàm chọn tệp đều nuốt lỗi và trả về [] thay vì ném: PlatformException (thường gặp nhất là
+  // người dùng từ chối quyền máy ảnh/bộ nhớ) thoát khỏi onTap sẽ khiến Navigator.pop() không chạy
+  // và bottom sheet kẹt lại không có lời giải thích nào.
   Future<List<PickedUpload>> _pickFromCamera() async {
-    final xfile = await ImagePicker().pickImage(source: ImageSource.camera);
-    if (xfile == null) return [];
-    return [PickedUpload(fileName: xfile.name, bytes: await xfile.readAsBytes())];
+    try {
+      final xfile = await ImagePicker().pickImage(source: ImageSource.camera);
+      if (xfile == null) return [];
+      return [PickedUpload(fileName: xfile.name, bytes: await xfile.readAsBytes())];
+    } catch (_) {
+      _showPickerError('Không thể truy cập máy ảnh.');
+      return [];
+    }
   }
 
   Future<List<PickedUpload>> _pickFromGallery() async {
-    final xfile = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (xfile == null) return [];
-    return [PickedUpload(fileName: xfile.name, bytes: await xfile.readAsBytes())];
+    try {
+      final xfile = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (xfile == null) return [];
+      return [PickedUpload(fileName: xfile.name, bytes: await xfile.readAsBytes())];
+    } catch (_) {
+      _showPickerError('Không thể truy cập thư viện ảnh.');
+      return [];
+    }
   }
 
   Future<List<PickedUpload>> _pickFiles() async {
-    final result = await FilePicker.platform.pickFiles(withData: true, allowMultiple: true);
-    if (result == null) return [];
-    return result.files
-        .where((platformFile) => platformFile.bytes != null)
-        .map((platformFile) => PickedUpload(fileName: platformFile.name, bytes: platformFile.bytes!))
-        .toList();
+    try {
+      final result = await FilePicker.platform.pickFiles(withData: true, allowMultiple: true);
+      if (result == null) return [];
+      return result.files
+          .where((platformFile) => platformFile.bytes != null)
+          .map((platformFile) => PickedUpload(fileName: platformFile.name, bytes: platformFile.bytes!))
+          .toList();
+    } catch (_) {
+      _showPickerError('Không thể chọn tệp.');
+      return [];
+    }
   }
 
   Future<List<PickedUpload>?> _showSourceSheet() {
@@ -106,9 +141,23 @@ class _AttachmentListSectionState extends ConsumerState<AttachmentListSection> {
 
     final finalQueue = await runUploadQueue(
       files: picked,
-      upload: (file, onSendProgress) => ref
-          .read(attachmentsProvider(widget.taskId).notifier)
-          .uploadAttachment(fileName: file.fileName, bytes: file.bytes, onSendProgress: onSendProgress),
+      // refreshAfter: false - refresh 1 lần sau cả hàng đợi (bên dưới) thay vì sau từng file, để
+      // danh sách bên dưới không sập thành spinner rồi bung lại theo từng file, và để một lần
+      // refresh hỏng giữa chừng không đẩy danh sách sang trạng thái lỗi khi hàng đợi vẫn đang chạy.
+      upload: (file, onSendProgress) async {
+        try {
+          await ref.read(attachmentsProvider(widget.taskId).notifier).uploadAttachment(
+                fileName: file.fileName,
+                bytes: file.bytes,
+                onSendProgress: onSendProgress,
+                refreshAfter: false,
+              );
+        } catch (e) {
+          // runUploadQueue hiển thị e.toString() - dịch sang thông báo thân thiện để không lộ
+          // thông báo lỗi thô của Dart/framework ra dòng tiến trình.
+          throw _UploadFailure(e is ApiException ? e.message : 'Không thể tải lên tệp.');
+        }
+      },
       onUpdate: (queue) {
         if (mounted) setState(() => _queue = queue);
       },
@@ -120,6 +169,11 @@ class _AttachmentListSectionState extends ConsumerState<AttachmentListSection> {
     if (message != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
+
+    // Refresh 1 lần cho cả hàng đợi để danh sách phản ánh những file đã tải lên thành công.
+    // refresh() dùng AsyncValue.guard nên không ném; nếu hỏng, attachmentsProvider ở trạng thái
+    // AsyncError và nhánh error: trong build() hiển thị thông báo.
+    await ref.read(attachmentsProvider(widget.taskId).notifier).refresh();
   }
 
   Future<void> _openAttachment(Attachment attachment) async {
