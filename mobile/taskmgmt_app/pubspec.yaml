@@ -60,6 +60,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  # Chỉ dùng trong test: cài ImagePickerPlatform giả thay cho platform channel thật
+  # (xem test/fake_image_picker_platform.dart). Vốn đã là dependency gián tiếp của image_picker.
+  image_picker_platform_interface: ^2.11.1
+
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
