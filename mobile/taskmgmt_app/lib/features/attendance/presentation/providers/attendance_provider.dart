@@ -35,26 +35,26 @@ class TodayAttendanceController extends AsyncNotifier<AttendanceRecord?> {
   }
 }
 
-typedef _YearMonth = ({int year, int month});
+typedef YearMonth = ({int year, int month});
 
 final attendanceHistoryProvider =
-    AsyncNotifierProviderFamily<AttendanceHistoryController, List<AttendanceRecord>, _YearMonth>(
+    AsyncNotifierProviderFamily<AttendanceHistoryController, List<AttendanceRecord>, YearMonth>(
         AttendanceHistoryController.new);
 
-class AttendanceHistoryController extends FamilyAsyncNotifier<List<AttendanceRecord>, _YearMonth> {
+class AttendanceHistoryController extends FamilyAsyncNotifier<List<AttendanceRecord>, YearMonth> {
   @override
-  Future<List<AttendanceRecord>> build(_YearMonth arg) {
+  Future<List<AttendanceRecord>> build(YearMonth arg) {
     return ref.read(attendanceRepositoryProvider).getHistory(year: arg.year, month: arg.month);
   }
 }
 
 final attendanceStatsProvider =
-    AsyncNotifierProviderFamily<AttendanceStatsController, AttendanceStats, _YearMonth>(
+    AsyncNotifierProviderFamily<AttendanceStatsController, AttendanceStats, YearMonth>(
         AttendanceStatsController.new);
 
-class AttendanceStatsController extends FamilyAsyncNotifier<AttendanceStats, _YearMonth> {
+class AttendanceStatsController extends FamilyAsyncNotifier<AttendanceStats, YearMonth> {
   @override
-  Future<AttendanceStats> build(_YearMonth arg) {
+  Future<AttendanceStats> build(YearMonth arg) {
     return ref.read(attendanceRepositoryProvider).getStats(year: arg.year, month: arg.month);
   }
 }
