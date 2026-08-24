@@ -16,7 +16,7 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                 table: "Locations",
                 type: "double precision",
                 nullable: false,
-                defaultValue: 0.0);
+                defaultValue: 100.0);
 
             migrationBuilder.CreateTable(
                 name: "AttendanceRecords",

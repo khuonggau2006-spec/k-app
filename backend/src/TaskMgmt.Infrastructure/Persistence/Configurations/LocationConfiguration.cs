@@ -12,6 +12,7 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
 
         builder.Property(l => l.Name).HasMaxLength(200).IsRequired();
         builder.Property(l => l.Address).HasMaxLength(500);
+        builder.Property(l => l.CheckInRadiusMeters).HasDefaultValue(100);
 
         builder.HasOne(l => l.ParentLocation)
             .WithMany(l => l.ChildLocations)
