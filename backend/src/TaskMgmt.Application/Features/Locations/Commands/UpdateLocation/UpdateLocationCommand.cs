@@ -9,5 +9,6 @@ public record UpdateLocationCommand(
     string? Address,
     double Latitude,
     double Longitude,
+    double CheckInRadiusMeters,
     bool IsActive,
     Guid? ParentLocationId) : IRequest<LocationDto>;

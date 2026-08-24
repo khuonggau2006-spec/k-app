@@ -14,7 +14,7 @@ public class UpdateLocationCommandValidatorTests
         await context.SaveChangesAsync(default);
 
         var validator = new UpdateLocationCommandValidator(context);
-        var command = new UpdateLocationCommand(location.Id, "Location", null, 10, 106, true, location.Id);
+        var command = new UpdateLocationCommand(location.Id, "Location", null, 10, 106, 100, true, location.Id);
 
         var result = await validator.ValidateAsync(command);
 
@@ -32,7 +32,7 @@ public class UpdateLocationCommandValidatorTests
         await context.SaveChangesAsync(default);
 
         var validator = new UpdateLocationCommandValidator(context);
-        var command = new UpdateLocationCommand(location.Id, "Location", null, 10, 106, true, parent.Id);
+        var command = new UpdateLocationCommand(location.Id, "Location", null, 10, 106, 100, true, parent.Id);
 
         var result = await validator.ValidateAsync(command);
 

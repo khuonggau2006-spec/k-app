@@ -21,6 +21,9 @@ public class UpdateLocationCommandValidator : AbstractValidator<UpdateLocationCo
         RuleFor(x => x.Longitude)
             .InclusiveBetween(-180, 180);
 
+        RuleFor(x => x.CheckInRadiusMeters)
+            .GreaterThan(0);
+
         RuleFor(x => x)
             .Must(x => x.ParentLocationId != x.Id)
             .WithMessage("Một vị trí không thể là vị trí cha của chính nó.")

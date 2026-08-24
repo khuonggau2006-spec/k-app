@@ -20,6 +20,7 @@ public class GetLocationsQueryHandler(IApplicationDbContext context, ICacheServi
                 l.Address,
                 l.Latitude,
                 l.Longitude,
+                l.CheckInRadiusMeters,
                 l.IsActive,
                 l.ParentLocationId,
                 l.CreatedAtUtc,
