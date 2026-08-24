@@ -363,10 +363,10 @@ public class GeoDistanceTests
     [Fact]
     public void CalculateMeters_KnownDistance_ReturnsApproximatelyCorrectValue()
     {
-        // Hồ Gươm (21.0285, 105.8542) và Sân bay Nội Bài (21.2187, 105.8048) - cách nhau ~23.6km thực tế.
+        // Hồ Gươm (21.0285, 105.8542) và Sân bay Nội Bài (21.2187, 105.8048) - Haversine tính ra ~21.76km.
         var distance = GeoDistance.CalculateMeters(21.0285, 105.8542, 21.2187, 105.8048);
 
-        Assert.InRange(distance, 22_000, 25_000);
+        Assert.InRange(distance, 21_000, 22_500);
     }
 
     [Fact]
