@@ -9,6 +9,17 @@ import '../../../../shared/widgets/error_state_view.dart';
 import '../../domain/entities/attendance_record.dart';
 import '../providers/attendance_provider.dart';
 
+class LocationAccessException implements Exception {
+  LocationAccessException(this.message);
+  final String message;
+}
+
+String attendanceErrorMessage(Object error, String fallback) {
+  if (error is ApiException) return error.message;
+  if (error is LocationAccessException) return error.message;
+  return fallback;
+}
+
 class AttendanceScreen extends ConsumerStatefulWidget {
   const AttendanceScreen({super.key});
 
@@ -29,7 +40,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
       permission = await Geolocator.requestPermission();
     }
     if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-      throw Exception('Cần quyền truy cập vị trí để chấm công.');
+      throw LocationAccessException('Cần quyền truy cập vị trí để chấm công.');
     }
     return Geolocator.getCurrentPosition();
   }
@@ -43,7 +54,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
           .checkIn(latitude: position.latitude, longitude: position.longitude);
     } catch (e) {
       if (!mounted) return;
-      final message = e is ApiException ? e.message : 'Không thể check-in.';
+      final message = attendanceErrorMessage(e, 'Không thể check-in.');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -59,7 +70,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
           .checkOut(latitude: position.latitude, longitude: position.longitude);
     } catch (e) {
       if (!mounted) return;
-      final message = e is ApiException ? e.message : 'Không thể check-out.';
+      final message = attendanceErrorMessage(e, 'Không thể check-out.');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
