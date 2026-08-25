@@ -26,7 +26,12 @@ class _AlwaysFailingAttachmentRepository implements AttachmentRepository {
   Future<void> deleteAttachment({required String workTaskId, required String attachmentId}) async {}
 
   @override
-  Future<Attachment> uploadAttachment({required String workTaskId, required String fileName, required Uint8List bytes}) =>
+  Future<Attachment> uploadAttachment({
+    required String workTaskId,
+    required String fileName,
+    required Uint8List bytes,
+    void Function(int sent, int total)? onSendProgress,
+  }) =>
       throw UnimplementedError();
 }
 

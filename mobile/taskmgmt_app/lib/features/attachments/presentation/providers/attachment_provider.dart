@@ -22,9 +22,23 @@ class AttachmentsController extends FamilyAsyncNotifier<List<Attachment>, String
     state = await AsyncValue.guard(() => ref.read(attachmentRepositoryProvider).getAttachments(arg));
   }
 
-  Future<void> uploadAttachment({required String fileName, required Uint8List bytes}) async {
-    await ref.read(attachmentRepositoryProvider).uploadAttachment(workTaskId: arg, fileName: fileName, bytes: bytes);
-    await refresh();
+  /// [refreshAfter] = false để bên gọi tự quyết định thời điểm refresh - dùng khi tải lên nhiều
+  /// file liên tiếp: refresh sau từng file khiến danh sách nhấp nháy (AsyncLoading) mỗi file, và
+  /// một lần refresh hỏng giữa chừng đẩy provider sang AsyncError dù các file vẫn đang tải lên
+  /// thành công.
+  Future<void> uploadAttachment({
+    required String fileName,
+    required Uint8List bytes,
+    void Function(int sent, int total)? onSendProgress,
+    bool refreshAfter = true,
+  }) async {
+    await ref.read(attachmentRepositoryProvider).uploadAttachment(
+          workTaskId: arg,
+          fileName: fileName,
+          bytes: bytes,
+          onSendProgress: onSendProgress,
+        );
+    if (refreshAfter) await refresh();
   }
 
   Future<Uint8List> downloadAttachment(String attachmentId) =>
