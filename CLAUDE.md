@@ -85,3 +85,23 @@ Feature-first under `lib/features/<feature>/`, each with its own `data/` (dataso
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`.
 - C#: follow `backend/.editorconfig` (4-space indent, CRLF, file-scoped namespaces, `var` preferred); namespaces mirror folder structure; every use case is a Command/Query + Handler under `Application/Features/<Module>`; validate via FluentValidation only, never manually in handlers.
 - Dart: default `flutter_lints`; every feature is self-contained (`data`/`domain`/`presentation`); shared technical infra → `lib/core/`, shared UI/models → `lib/shared/`.
+
+## Linear (issue tracking)
+
+Workspace **K-App** (team `K-App`, id `9c63221f-a4ac-488c-85f7-b844bda318ea`), via `mcp__plugin_linear_linear__*` MCP tools. GitHub↔Linear is connected at the organization level (`khuonggau2006-spec`) — a commit/PR/branch that references an issue ID auto-links and can auto-transition it:
+- Branch name containing `k-<id>` (Linear's auto-generated branch name, e.g. `khuonggau2006/k-5-...`), or a commit/PR title containing `K-<id>`, auto-links to that issue.
+- A PR/commit with `Fixes K-<id>` / `Closes K-<id>` auto-moves the issue to `Done` on merge; plain `K-<id>` / `Refs K-<id>` links without moving state.
+Use this instead of manually attaching PR links where possible — reserve manual `links`/state updates (via MCP) for stages GitHub can't see (spec/plan approval, worktree creation, SDD task progress).
+
+**Issue lifecycle, mapped to the Superpowers workflow** (`brainstorming` → spec → `writing-plans` → plan → `subagent-driven-development` → `finishing-a-development-branch`):
+
+1. Idea/request arrives → create the issue (`Backlog`). Title matches the eventual spec/plan filename slug (`docs/superpowers/specs/YYYY-MM-DD-<feature>-design.md`).
+2. Spec approved and plan being written/approved → move to `Todo`; issue description links to the spec and plan file paths.
+3. Worktree created (`.worktrees/<feature>` on `feature/<feature>`), `subagent-driven-development` starts → move to `In Progress`.
+4. Final whole-branch review clean → if pushing a PR (Option 2), title or first commit includes `Fixes K-<id>`/`Closes K-<id>` so GitHub auto-moves the issue to `In Review` then `Done` on merge — no manual state update needed. If merging straight to `main` locally (Option 1, no PR — GitHub sees nothing), skip to step 5.
+5. Merged to `main` → for a local merge (Option 1), manually move to `Done` via MCP (GitHub auto-sync only fires on PR merge); append a short result note + commit range to the issue description either way.
+
+Other rules:
+- A bug found mid-work (CI failure, UAT finding, etc.) gets its own issue immediately, labeled `Bug` — never folded into the feature issue that surfaced it.
+- Every issue gets exactly one of the existing labels: `Feature` / `Improvement` / `Bug`.
+- No Linear sub-issues per plan task — the SDD ledger (`.superpowers/sdd/<plan>/progress.md`) already tracks task-level state; Linear tracks feature-level state only.
