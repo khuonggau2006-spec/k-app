@@ -153,6 +153,14 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Đăng nhập'));
     await tester.pumpAndSettle();
 
+    // Badge số thông báo chưa đọc giờ nằm trên ô "Thông báo" của màn Home (thay vì AppBar của
+    // Công việc) - lưới 5 ô cao hơn viewport test mặc định nên nới kích thước ảo để dựng hết.
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpAndSettle();
+
     Finder badgeLabel(String text) => find.descendant(of: find.byType(Badge), matching: find.text(text));
 
     expect(badgeLabel('2'), findsOneWidget);
