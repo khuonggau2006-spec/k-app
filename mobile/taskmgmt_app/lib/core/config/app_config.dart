@@ -16,11 +16,14 @@ class AppConfig {
 
   /// Backend dev chạy tại `dotnet run --urls "http://localhost:5299"`.
   ///
-  /// Trên Android (kể cả máy ảo), trỏ về `10.0.2.2` - địa chỉ đặc biệt Android ánh xạ tới
-  /// `localhost` của máy host QUA card mạng ảo thật của thiết bị, khác với đường hầm `adb
-  /// reverse` (bỏ qua trạng thái mạng của máy). Nhờ vậy bật/tắt Wi-Fi hay chế độ máy bay trên
-  /// máy ảo sẽ thật sự cắt kết nối, giống hệt hành vi trên thiết bị thật.
-  static String get _host => !kIsWeb && Platform.isAndroid ? '10.0.2.2' : 'localhost';
+  /// Trên Android, mặc định trỏ về **IP LAN của laptop** (`192.168.1.143`) - dùng khi cài APK
+  /// lên điện thoại THẬT, cùng chung Wi-Fi với laptop đang chạy backend (không cần domain/VPS).
+  /// Đổi IP này nếu laptop đổi mạng/đổi IP (`ipconfig` để xem IP hiện tại).
+  ///
+  /// Nếu quay lại test trên MÁY ẢO, đổi tạm thành `10.0.2.2` - địa chỉ đặc biệt Android emulator
+  /// ánh xạ tới `localhost` của máy host qua card mạng ảo, khác với đường hầm `adb reverse` (bỏ
+  /// qua trạng thái mạng của máy) nên bật/tắt Wi-Fi trên máy ảo sẽ thật sự cắt kết nối.
+  static String get _host => !kIsWeb && Platform.isAndroid ? '192.168.1.143' : 'localhost';
 
   static String get _defaultBaseUrl => 'http://$_host:5299';
 
