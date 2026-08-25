@@ -144,7 +144,7 @@ void main() {
     expect(find.text('Công việc'), findsNothing);
   });
 
-  testWidgets('Login with correct credentials navigates to task list', (tester) async {
+  testWidgets('Login with correct credentials navigates to home screen', (tester) async {
     await tester.pumpWidget(_buildApp());
     await tester.pumpAndSettle();
 
@@ -153,6 +153,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Đăng nhập'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Trang chủ'), findsOneWidget);
     expect(find.text('Công việc'), findsOneWidget);
   });
 

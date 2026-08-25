@@ -8,6 +8,7 @@ import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/locations/presentation/screens/location_list_screen.dart';
 import '../../features/notifications/presentation/screens/notification_center_screen.dart';
 import '../../features/notifications/presentation/screens/notification_preferences_screen.dart';
@@ -35,7 +36,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.matchedLocation == LoginScreen.path || state.matchedLocation == RegisterScreen.path;
 
       if (!isAuthenticated && !isAuthRoute) return LoginScreen.path;
-      if (isAuthenticated && isAuthRoute) return TaskListScreen.path;
+      if (isAuthenticated && isAuthRoute) return HomeScreen.path;
       return null;
     },
     routes: [
@@ -48,6 +49,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RegisterScreen.path,
         name: RegisterScreen.name,
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: HomeScreen.path,
+        name: HomeScreen.name,
+        builder: (context, state) => const HomeScreen(),
       ),
       GoRoute(
         path: TaskListScreen.path,

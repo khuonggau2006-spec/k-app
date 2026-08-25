@@ -6,12 +6,6 @@ import '../../../../core/models/paged_result.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../shared/widgets/empty_state_view.dart';
 import '../../../../shared/widgets/error_state_view.dart';
-import '../../../attendance/presentation/screens/attendance_screen.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../dashboard/presentation/screens/dashboard_screen.dart';
-import '../../../locations/presentation/screens/location_list_screen.dart';
-import '../../../notifications/presentation/providers/notification_provider.dart';
-import '../../../notifications/presentation/screens/notification_center_screen.dart';
 import '../../domain/entities/work_task.dart';
 import '../providers/work_task_provider.dart';
 import '../widgets/work_task_filter_bar.dart';
@@ -51,58 +45,14 @@ class TaskListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tasksAsync = ref.watch(workTasksProvider);
-    final user = ref.watch(authControllerProvider).valueOrNull;
-    final unreadCount = ref.watch(unreadNotificationCountProvider).valueOrNull ?? 0;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Công việc'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.dashboard_outlined),
-            tooltip: 'Dashboard',
-            onPressed: () => context.push(DashboardScreen.path),
-          ),
-          IconButton(
-            icon: Badge.count(
-              count: unreadCount,
-              isLabelVisible: unreadCount > 0,
-              child: const Icon(Icons.notifications_outlined),
-            ),
-            tooltip: 'Thông báo',
-            onPressed: () => context.push(NotificationCenterScreen.path),
-          ),
-          IconButton(
-            icon: const Icon(Icons.fingerprint),
-            tooltip: 'Chấm công',
-            onPressed: () => context.push(AttendanceScreen.path),
-          ),
-          IconButton(
-            icon: const Icon(Icons.location_on_outlined),
-            tooltip: 'Vị trí',
-            onPressed: () => context.push(LocationListScreen.path),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Đăng xuất',
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
-          ),
-        ],
       ),
       body: Column(
         children: [
           const WorkTaskFilterBar(),
-          if (user != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Xin chào, ${user.fullName}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            ),
           const SizedBox(height: 4),
           Expanded(
             child: tasksAsync.when(
