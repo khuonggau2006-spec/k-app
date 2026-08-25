@@ -23,6 +23,9 @@ internal static class CacheKeys
     public const string DashboardStatsPrefix = "dashboard:stats:";
     public static readonly TimeSpan DashboardStatsExpiration = TimeSpan.FromSeconds(60);
 
+    public const string WeeklyCompletionStatsPrefix = "dashboard:weekly-completion:";
+    public static readonly TimeSpan WeeklyCompletionStatsExpiration = TimeSpan.FromMinutes(5);
+
     public static string WorkTaskList(
         WorkTaskStatus? status, Guid? locationId, Guid? parentTaskId,
         int pageNumber, int pageSize, string? sortBy, bool sortDescending) =>
@@ -37,4 +40,6 @@ internal static class CacheKeys
     public static string DisabledNotificationTypes(Guid userId) => $"notifications:disabledtypes:{userId}";
 
     public static string DashboardStats(Guid? locationId) => $"{DashboardStatsPrefix}{locationId}";
+
+    public static string WeeklyCompletionStats(Guid? locationId) => $"{WeeklyCompletionStatsPrefix}{locationId}";
 }
