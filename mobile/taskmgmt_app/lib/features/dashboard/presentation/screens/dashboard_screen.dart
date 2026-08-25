@@ -6,6 +6,7 @@ import '../../../../core/network/api_exception.dart';
 import '../../../../shared/widgets/error_state_view.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_stat_grid.dart';
+import '../widgets/weekly_completion_chart.dart';
 import '../widgets/work_task_kanban_board.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -17,6 +18,7 @@ class DashboardScreen extends ConsumerWidget {
   Future<void> _refresh(WidgetRef ref) async {
     await Future.wait([
       ref.read(dashboardStatsProvider.notifier).refresh(),
+      ref.read(weeklyCompletionStatsProvider.notifier).refresh(),
       ref.read(dashboardTasksProvider.notifier).refresh(),
     ]);
   }
@@ -24,6 +26,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(dashboardStatsProvider);
+    final weeklyCompletionAsync = ref.watch(weeklyCompletionStatsProvider);
     final tasksAsync = ref.watch(dashboardTasksProvider);
 
     return Scaffold(
@@ -40,6 +43,17 @@ class DashboardScreen extends ConsumerWidget {
               error: (error, _) => ErrorStateView(
                 message: error is ApiException ? error.message : 'Không thể tải thống kê.',
                 onRetry: () => ref.read(dashboardStatsProvider.notifier).refresh(),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text('Hoàn thành theo tuần', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            weeklyCompletionAsync.when(
+              data: (data) => WeeklyCompletionChart(data: data),
+              loading: () => const SizedBox(height: 180, child: Center(child: CircularProgressIndicator())),
+              error: (error, _) => ErrorStateView(
+                message: error is ApiException ? error.message : 'Không thể tải biểu đồ hoàn thành.',
+                onRetry: () => ref.read(weeklyCompletionStatsProvider.notifier).refresh(),
               ),
             ),
             const SizedBox(height: 24),
