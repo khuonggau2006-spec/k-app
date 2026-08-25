@@ -21,6 +21,7 @@ public class UpdateLocationCommandHandler(IApplicationDbContext context, ICurren
         location.Address = request.Address;
         location.Latitude = request.Latitude;
         location.Longitude = request.Longitude;
+        location.CheckInRadiusMeters = request.CheckInRadiusMeters;
         location.IsActive = request.IsActive;
         location.ParentLocationId = request.ParentLocationId;
         location.UpdatedAtUtc = DateTimeOffset.UtcNow;

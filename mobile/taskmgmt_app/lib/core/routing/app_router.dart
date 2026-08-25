@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/attachments/presentation/screens/attachment_viewer_screen.dart';
+import '../../features/attendance/presentation/screens/attendance_screen.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -85,6 +86,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: DashboardScreen.path,
         name: DashboardScreen.name,
         builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: AttendanceScreen.path,
+        name: AttendanceScreen.name,
+        builder: (context, state) => const AttendanceScreen(),
       ),
     ],
   );

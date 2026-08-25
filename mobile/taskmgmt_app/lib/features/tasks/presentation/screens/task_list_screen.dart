@@ -6,6 +6,7 @@ import '../../../../core/models/paged_result.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../shared/widgets/empty_state_view.dart';
 import '../../../../shared/widgets/error_state_view.dart';
+import '../../../attendance/presentation/screens/attendance_screen.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../dashboard/presentation/screens/dashboard_screen.dart';
 import '../../../locations/presentation/screens/location_list_screen.dart';
@@ -70,6 +71,11 @@ class TaskListScreen extends ConsumerWidget {
             ),
             tooltip: 'Thông báo',
             onPressed: () => context.push(NotificationCenterScreen.path),
+          ),
+          IconButton(
+            icon: const Icon(Icons.fingerprint),
+            tooltip: 'Chấm công',
+            onPressed: () => context.push(AttendanceScreen.path),
           ),
           IconButton(
             icon: const Icon(Icons.location_on_outlined),

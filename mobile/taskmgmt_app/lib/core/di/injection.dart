@@ -5,6 +5,9 @@ import 'package:get_it/get_it.dart';
 import '../../features/attachments/data/datasources/attachment_remote_data_source.dart';
 import '../../features/attachments/data/repositories/attachment_repository_impl.dart';
 import '../../features/attachments/domain/repositories/attachment_repository.dart';
+import '../../features/attendance/data/datasources/attendance_remote_data_source.dart';
+import '../../features/attendance/data/repositories/attendance_repository_impl.dart';
+import '../../features/attendance/domain/repositories/attendance_repository.dart';
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -66,6 +69,9 @@ void setupLocator() {
 
   getIt.registerLazySingleton<AttachmentRemoteDataSource>(() => AttachmentRemoteDataSource(getIt()));
   getIt.registerLazySingleton<AttachmentRepository>(() => AttachmentRepositoryImpl(getIt()));
+
+  getIt.registerLazySingleton<AttendanceRemoteDataSource>(() => AttendanceRemoteDataSource(getIt()));
+  getIt.registerLazySingleton<AttendanceRepository>(() => AttendanceRepositoryImpl(getIt()));
 
   getIt.registerLazySingleton<TaskHistoryRemoteDataSource>(() => TaskHistoryRemoteDataSource(getIt()));
   getIt.registerLazySingleton<TaskHistoryRepository>(() => TaskHistoryRepositoryImpl(getIt()));

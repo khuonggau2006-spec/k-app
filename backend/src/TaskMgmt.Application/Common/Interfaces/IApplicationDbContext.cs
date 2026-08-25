@@ -17,6 +17,7 @@ public interface IApplicationDbContext
     DbSet<DeviceToken> DeviceTokens { get; }
     DbSet<Notification> Notifications { get; }
     DbSet<NotificationPreference> NotificationPreferences { get; }
+    DbSet<AttendanceRecord> AttendanceRecords { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

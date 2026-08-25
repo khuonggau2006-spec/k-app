@@ -9,6 +9,7 @@ public class Location : AuditableEntity
     public double Latitude { get; set; }
     public double Longitude { get; set; }
     public bool IsActive { get; set; } = true;
+    public double CheckInRadiusMeters { get; set; } = 100;
 
     public Guid? ParentLocationId { get; set; }
     public Location? ParentLocation { get; set; }

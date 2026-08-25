@@ -75,6 +75,70 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                     b.ToTable("Attachments", (string)null);
                 });
 
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.AttendanceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("CheckInAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double?>("CheckInLatitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid?>("CheckInLocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<double?>("CheckInLongitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTimeOffset?>("CheckOutAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double?>("CheckOutLatitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid?>("CheckOutLocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<double?>("CheckOutLongitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("WorkDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CheckInLocationId");
+
+                    b.HasIndex("CheckOutLocationId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.HasIndex("UserId", "WorkDate")
+                        .IsUnique();
+
+                    b.ToTable("AttendanceRecords", (string)null);
+                });
+
             modelBuilder.Entity("TaskMgmt.Domain.Entities.Comment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -176,6 +240,11 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                     b.Property<string>("Address")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<double>("CheckInRadiusMeters")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("double precision")
+                        .HasDefaultValue(100.0);
 
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
@@ -541,6 +610,41 @@ namespace TaskMgmt.Infrastructure.Persistence.Migrations
                     b.Navigation("Uploader");
 
                     b.Navigation("WorkTask");
+                });
+
+            modelBuilder.Entity("TaskMgmt.Domain.Entities.AttendanceRecord", b =>
+                {
+                    b.HasOne("TaskMgmt.Domain.Entities.Location", "CheckInLocation")
+                        .WithMany()
+                        .HasForeignKey("CheckInLocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TaskMgmt.Domain.Entities.Location", "CheckOutLocation")
+                        .WithMany()
+                        .HasForeignKey("CheckOutLocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TaskMgmt.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TaskMgmt.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("TaskMgmt.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CheckInLocation");
+
+                    b.Navigation("CheckOutLocation");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TaskMgmt.Domain.Entities.Comment", b =>

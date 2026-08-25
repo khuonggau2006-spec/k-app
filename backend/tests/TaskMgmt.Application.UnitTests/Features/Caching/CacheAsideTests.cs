@@ -84,7 +84,7 @@ public class CacheAsideTests
         var stale = await sender.Send(new GetLocationByIdQuery(location.Id));
         Assert.Equal("Original", stale.Name);
 
-        await sender.Send(new UpdateLocationCommand(location.Id, "Updated via command", null, 10.0, 20.0, true, null));
+        await sender.Send(new UpdateLocationCommand(location.Id, "Updated via command", null, 10.0, 20.0, 100, true, null));
 
         var fresh = await sender.Send(new GetLocationByIdQuery(location.Id));
         Assert.Equal("Updated via command", fresh.Name);
