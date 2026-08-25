@@ -4,6 +4,7 @@ import '../../../../core/di/injection.dart';
 import '../../../tasks/domain/entities/work_task.dart';
 import '../../../tasks/presentation/providers/work_task_provider.dart';
 import '../../domain/entities/dashboard_stats.dart';
+import '../../domain/entities/weekly_completion.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 
 final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) => getIt<DashboardRepository>());
@@ -19,6 +20,21 @@ class DashboardStatsController extends AsyncNotifier<DashboardStats> {
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => ref.read(dashboardRepositoryProvider).getStats());
+  }
+}
+
+final weeklyCompletionStatsProvider =
+    AsyncNotifierProvider<WeeklyCompletionStatsController, List<WeeklyCompletion>>(
+  WeeklyCompletionStatsController.new,
+);
+
+class WeeklyCompletionStatsController extends AsyncNotifier<List<WeeklyCompletion>> {
+  @override
+  Future<List<WeeklyCompletion>> build() => ref.read(dashboardRepositoryProvider).getWeeklyCompletion();
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => ref.read(dashboardRepositoryProvider).getWeeklyCompletion());
   }
 }
 

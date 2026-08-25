@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:taskmgmt_app/core/models/paged_result.dart';
 import 'package:taskmgmt_app/features/dashboard/domain/entities/dashboard_stats.dart';
+import 'package:taskmgmt_app/features/dashboard/domain/entities/weekly_completion.dart';
 import 'package:taskmgmt_app/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:taskmgmt_app/features/dashboard/presentation/providers/dashboard_provider.dart';
 import 'package:taskmgmt_app/features/dashboard/presentation/screens/dashboard_screen.dart';
@@ -25,6 +26,11 @@ const _stats = DashboardStats(
 class _FakeDashboardRepository implements DashboardRepository {
   @override
   Future<DashboardStats> getStats({String? locationId}) async => _stats;
+
+  @override
+  Future<List<WeeklyCompletion>> getWeeklyCompletion({String? locationId}) async => [
+        WeeklyCompletion(weekStartDate: DateTime(2026, 8, 3), completedCount: 1),
+      ];
 }
 
 class _FakeWorkTaskRepository implements WorkTaskRepository {
@@ -93,6 +99,13 @@ Widget _buildScreen() => ProviderScope(
 
 void main() {
   testWidgets('Shows quick stats and kanban columns grouped by status', (tester) async {
+    // Màn hình test mặc định không đủ cao để dựng hết ListView (thống kê + biểu đồ tuần +
+    // kanban) trong 1 lần build - tăng chiều cao viewport ảo để mọi phần đều được dựng.
+    tester.view.physicalSize = const Size(400, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(_buildScreen());
     await tester.pumpAndSettle();
 
