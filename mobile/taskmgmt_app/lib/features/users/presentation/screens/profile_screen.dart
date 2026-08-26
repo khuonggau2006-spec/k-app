@@ -34,9 +34,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final bytes = await xfile.readAsBytes();
       final updatedUser =
           await ref.read(userRepositoryProvider).uploadAvatar(bytes: bytes, fileName: xfile.name);
+      ref.invalidate(avatarBytesProvider(updatedUser.id));
       ref.read(authControllerProvider.notifier).updateUser(updatedUser);
     } catch (e) {
-      _showError(e is ApiException ? e.message : 'Không thể tải ảnh lên.');
+      _showError(e is ApiException ? e.allMessages.join('\n') : 'Không thể tải ảnh lên.');
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
@@ -75,9 +76,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       setState(() => _isBusy = true);
       final updatedUser = await ref.read(userRepositoryProvider).deleteAvatar();
+      ref.invalidate(avatarBytesProvider(updatedUser.id));
       ref.read(authControllerProvider.notifier).updateUser(updatedUser);
     } catch (e) {
-      _showError(e is ApiException ? e.message : 'Không thể xoá avatar.');
+      _showError(e is ApiException ? e.allMessages.join('\n') : 'Không thể xoá avatar.');
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }

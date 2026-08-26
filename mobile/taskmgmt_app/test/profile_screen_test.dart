@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 
 import 'package:taskmgmt_app/core/network/auth_event_bus.dart';
 import 'package:taskmgmt_app/features/auth/domain/entities/user.dart';
@@ -12,6 +13,8 @@ import 'package:taskmgmt_app/features/auth/presentation/providers/auth_provider.
 import 'package:taskmgmt_app/features/users/domain/repositories/user_repository.dart';
 import 'package:taskmgmt_app/features/users/presentation/providers/user_provider.dart';
 import 'package:taskmgmt_app/features/users/presentation/screens/profile_screen.dart';
+
+import 'fake_image_picker_platform.dart';
 
 const _userWithAvatar = User(
   id: '1',
@@ -52,6 +55,9 @@ class _FakeUserRepository implements UserRepository {
   _FakeUserRepository();
 
   bool deleteAvatarCalled = false;
+  bool uploadAvatarCalled = false;
+  Uint8List? lastUploadedBytes;
+  String? lastUploadedFileName;
 
   @override
   Future<List<User>> getUsers() async => [];
@@ -60,7 +66,12 @@ class _FakeUserRepository implements UserRepository {
   Future<Uint8List?> downloadAvatar(String userId) async => null;
 
   @override
-  Future<User> uploadAvatar({required Uint8List bytes, required String fileName}) async => throw UnimplementedError();
+  Future<User> uploadAvatar({required Uint8List bytes, required String fileName}) async {
+    uploadAvatarCalled = true;
+    lastUploadedBytes = bytes;
+    lastUploadedFileName = fileName;
+    return _userWithAvatar;
+  }
 
   @override
   Future<User> deleteAvatar() async {
@@ -78,10 +89,14 @@ Widget _buildScreen(User user, UserRepository userRepository) => ProviderScope(
     );
 
 void main() {
+  late FakeImagePickerPlatform imagePicker;
+
   setUp(() {
     // AuthController.build() gọi getIt<AuthEventBus>() - đăng ký thủ công vì test không gọi
     // setupLocator() (tránh phải fake toàn bộ cây phụ thuộc DI thật).
     GetIt.instance.registerLazySingleton<AuthEventBus>(() => AuthEventBus());
+    imagePicker = FakeImagePickerPlatform();
+    ImagePickerPlatform.instance = imagePicker;
   });
 
   tearDown(() => GetIt.instance.reset());
@@ -112,5 +127,43 @@ void main() {
 
     expect(userRepository.deleteAvatarCalled, isTrue);
     expect(find.text('Xoá avatar'), findsNothing);
+  });
+
+  testWidgets('Tapping the camera button, picking a photo, uploads it and refreshes the avatar',
+      (tester) async {
+    final userRepository = _FakeUserRepository();
+    imagePicker.fileName = 'anh_moi.png';
+
+    final container = ProviderContainer(
+      overrides: [
+        authRepositoryProvider.overrideWithValue(_FakeAuthRepository(_userWithoutAvatar)),
+        userRepositoryProvider.overrideWithValue(userRepository),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: ProfileScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Đổi avatar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Chọn từ thư viện'));
+    await tester.pumpAndSettle();
+
+    expect(imagePicker.lastSource, ImageSource.gallery);
+    expect(userRepository.uploadAvatarCalled, isTrue);
+    expect(userRepository.lastUploadedFileName, 'anh_moi.png');
+    expect(userRepository.lastUploadedBytes, isNotNull);
+
+    // Upload trả về user đã có avatar - AuthController phải phản ánh đúng trạng thái mới,
+    // nhờ đó nút "Xoá avatar" xuất hiện dù ban đầu user chưa có avatar.
+    expect(container.read(authControllerProvider).valueOrNull, _userWithAvatar);
+    expect(find.text('Xoá avatar'), findsOneWidget);
   });
 }

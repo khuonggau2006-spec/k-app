@@ -38,6 +38,6 @@ class StoredSession {
         userEmail: json['userEmail'] as String,
         userFullName: json['userFullName'] as String,
         userSystemRole: json['userSystemRole'] as String,
-        hasAvatar: json['hasAvatar'] as bool,
+        hasAvatar: json['hasAvatar'] as bool? ?? false,
       );
 }

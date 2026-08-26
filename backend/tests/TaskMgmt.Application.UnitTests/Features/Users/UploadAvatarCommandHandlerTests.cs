@@ -30,7 +30,7 @@ public class UploadAvatarCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_SecondUpload_DeletesOldStorageKeyFirst()
+    public async Task Handle_SecondUpload_DeletesOldStorageKeyAfterNewUpload()
     {
         using var context = TestDbContextFactory.Create();
         var user = TestDataFactory.CreateUser();
@@ -47,5 +47,11 @@ public class UploadAvatarCommandHandlerTests
 
         Assert.Equal(["avatars/old/key.png"], storage.DeletedKeys);
         Assert.Single(storage.UploadedKeys);
+
+        // New blob must be uploaded before the old one is deleted, so a failed upload
+        // never leaves the DB pointing at a deleted key.
+        Assert.Equal(2, storage.CallOrder.Count);
+        Assert.StartsWith("upload:", storage.CallOrder[0]);
+        Assert.StartsWith("delete:", storage.CallOrder[1]);
     }
 }

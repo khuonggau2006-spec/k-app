@@ -20,7 +20,7 @@ public class UsersController(ISender sender) : ControllerBase
     }
 
     [HttpPost("me/avatar")]
-    [RequestSizeLimit(5 * 1024 * 1024)]
+    [RequestSizeLimit(5 * 1024 * 1024 + 64 * 1024)]
     public async Task<ActionResult<UserDto>> UploadAvatar(IFormFile file, CancellationToken cancellationToken)
     {
         var buffer = new MemoryStream();

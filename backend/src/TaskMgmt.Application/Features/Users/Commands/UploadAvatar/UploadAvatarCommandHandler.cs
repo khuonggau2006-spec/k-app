@@ -16,10 +16,7 @@ public class UploadAvatarCommandHandler(IApplicationDbContext context, IFileStor
 
         AttachmentFileValidator.TryGetAllowedContentType(request.FileName, out var contentType);
 
-        if (user.AvatarStorageKey != null)
-        {
-            await storage.DeleteAsync(user.AvatarStorageKey, cancellationToken);
-        }
+        var oldStorageKey = user.AvatarStorageKey;
 
         // Khoá lưu trữ ngẫu nhiên theo user, không dựa vào FileName gốc - tránh path traversal/đè file.
         var storageKey = $"avatars/{userId}/{Guid.NewGuid()}{Path.GetExtension(request.FileName)}";
@@ -29,6 +26,11 @@ public class UploadAvatarCommandHandler(IApplicationDbContext context, IFileStor
 
         user.AvatarStorageKey = storageKey;
         await context.SaveChangesAsync(cancellationToken);
+
+        if (oldStorageKey != null)
+        {
+            await storage.DeleteAsync(oldStorageKey, cancellationToken);
+        }
 
         return UserDto.FromEntity(user);
     }
