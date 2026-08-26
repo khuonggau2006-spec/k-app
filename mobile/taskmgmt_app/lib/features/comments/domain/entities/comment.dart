@@ -14,6 +14,7 @@ class Comment {
     required this.authorUserId,
     required this.authorFullName,
     required this.authorEmail,
+    required this.authorHasAvatar,
     required this.createdAtUtc,
     required this.mentions,
   });
@@ -24,6 +25,7 @@ class Comment {
   final String? authorUserId;
   final String authorFullName;
   final String authorEmail;
+  final bool authorHasAvatar;
   final DateTime createdAtUtc;
   final List<CommentMention> mentions;
 }

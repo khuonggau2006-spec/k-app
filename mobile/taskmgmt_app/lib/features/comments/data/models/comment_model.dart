@@ -24,6 +24,7 @@ class CommentModel {
     required this.authorUserId,
     required this.authorFullName,
     required this.authorEmail,
+    required this.authorHasAvatar,
     required this.createdAtUtc,
     required this.mentions,
   });
@@ -34,6 +35,7 @@ class CommentModel {
   final String? authorUserId;
   final String authorFullName;
   final String authorEmail;
+  final bool authorHasAvatar;
   final DateTime createdAtUtc;
   final List<CommentMentionModel> mentions;
 
@@ -44,6 +46,7 @@ class CommentModel {
         authorUserId: json['authorUserId'] as String?,
         authorFullName: json['authorFullName'] as String,
         authorEmail: json['authorEmail'] as String,
+        authorHasAvatar: json['authorHasAvatar'] as bool,
         createdAtUtc: DateTime.parse(json['createdAtUtc'] as String),
         mentions: (json['mentions'] as List<dynamic>)
             .map((m) => CommentMentionModel.fromJson(m as Map<String, dynamic>))
@@ -57,6 +60,7 @@ class CommentModel {
         authorUserId: authorUserId,
         authorFullName: authorFullName,
         authorEmail: authorEmail,
+        authorHasAvatar: authorHasAvatar,
         createdAtUtc: createdAtUtc,
         mentions: mentions.map((m) => m.toDomain()).toList(),
       );

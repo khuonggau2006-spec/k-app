@@ -7,6 +7,7 @@ class TaskAssigneeModel {
     required this.userId,
     required this.userFullName,
     required this.userEmail,
+    required this.userHasAvatar,
     required this.role,
   });
 
@@ -15,6 +16,7 @@ class TaskAssigneeModel {
   final String userId;
   final String userFullName;
   final String userEmail;
+  final bool userHasAvatar;
   final String role;
 
   factory TaskAssigneeModel.fromJson(Map<String, dynamic> json) => TaskAssigneeModel(
@@ -23,6 +25,7 @@ class TaskAssigneeModel {
         userId: json['userId'] as String,
         userFullName: json['userFullName'] as String,
         userEmail: json['userEmail'] as String,
+        userHasAvatar: json['userHasAvatar'] as bool,
         role: json['role'] as String,
       );
 
@@ -32,6 +35,7 @@ class TaskAssigneeModel {
         userId: userId,
         userFullName: userFullName,
         userEmail: userEmail,
+        userHasAvatar: userHasAvatar,
         role: taskAssigneeRoleFromString(role),
       );
 }

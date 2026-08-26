@@ -128,6 +128,7 @@ class _FakeCommentRepository implements CommentRepository {
           authorUserId: 'u1',
           authorFullName: 'Người Dùng A',
           authorEmail: 'nguoidung@example.com',
+          authorHasAvatar: false,
           createdAtUtc: DateTime.utc(2026, 7, 31, 10),
           mentions: const [],
         ),

@@ -29,6 +29,7 @@ class TaskAssignee {
     required this.userId,
     required this.userFullName,
     required this.userEmail,
+    required this.userHasAvatar,
     required this.role,
   });
 
@@ -37,5 +38,6 @@ class TaskAssignee {
   final String userId;
   final String userFullName;
   final String userEmail;
+  final bool userHasAvatar;
   final TaskAssigneeRole role;
 }

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/network/api_exception.dart';
 import '../../../../shared/widgets/inline_empty_state.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 import '../../../users/presentation/providers/user_provider.dart';
 import '../../domain/entities/comment.dart';
 import '../providers/comment_provider.dart';
@@ -161,9 +162,15 @@ class _CommentTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            child: Text(comment.authorFullName.isNotEmpty ? comment.authorFullName[0].toUpperCase() : '?'),
-          ),
+          comment.authorUserId == null
+              ? CircleAvatar(
+                  child: Text(comment.authorFullName.isNotEmpty ? comment.authorFullName[0].toUpperCase() : '?'),
+                )
+              : UserAvatar(
+                  userId: comment.authorUserId!,
+                  hasAvatar: comment.authorHasAvatar,
+                  fallbackText: comment.authorFullName.isNotEmpty ? comment.authorFullName[0].toUpperCase() : '?',
+                ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

@@ -5,6 +5,7 @@ import '../../../../core/network/api_exception.dart';
 import '../../../../shared/widgets/inline_empty_state.dart';
 import '../../../auth/domain/entities/user.dart' as domain;
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 import '../../domain/entities/task_assignee.dart';
 import '../providers/task_assignee_provider.dart';
 import 'add_assignee_dialog.dart';
@@ -94,8 +95,10 @@ class AssigneeListSection extends ConsumerWidget {
                       .map(
                         (assignee) => ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: CircleAvatar(
-                            child: Text(assignee.userFullName.isNotEmpty ? assignee.userFullName[0].toUpperCase() : '?'),
+                          leading: UserAvatar(
+                            userId: assignee.userId,
+                            hasAvatar: assignee.userHasAvatar,
+                            fallbackText: assignee.userFullName.isNotEmpty ? assignee.userFullName[0].toUpperCase() : '?',
                           ),
                           title: Text(assignee.userFullName),
                           subtitle: Text('${assignee.userEmail} • ${taskAssigneeRoleLabel(assignee.role)}'),
