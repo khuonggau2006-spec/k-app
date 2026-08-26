@@ -12,7 +12,7 @@ public class GetUsersQueryHandler(IApplicationDbContext context) : IRequestHandl
         return await context.Users
             .Where(u => u.IsActive)
             .OrderBy(u => u.FullName)
-            .Select(u => new UserDto(u.Id, u.Email, u.FullName, u.SystemRole))
+            .Select(u => new UserDto(u.Id, u.Email, u.FullName, u.SystemRole, u.AvatarStorageKey != null))
             .ToListAsync(cancellationToken);
     }
 }
