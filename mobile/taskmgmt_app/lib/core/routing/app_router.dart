@@ -14,6 +14,7 @@ import '../../features/notifications/presentation/screens/notification_center_sc
 import '../../features/notifications/presentation/screens/notification_preferences_screen.dart';
 import '../../features/tasks/presentation/screens/task_list_screen.dart';
 import '../../features/tasks/presentation/screens/work_task_detail_screen.dart';
+import '../../features/users/presentation/screens/profile_screen.dart';
 
 class _AuthRefreshNotifier extends ChangeNotifier {
   _AuthRefreshNotifier(Ref ref) {
@@ -54,6 +55,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: HomeScreen.path,
         name: HomeScreen.name,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: ProfileScreen.path,
+        name: ProfileScreen.name,
+        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
         path: TaskListScreen.path,
