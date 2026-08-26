@@ -18,7 +18,13 @@ import 'package:taskmgmt_app/features/notifications/presentation/providers/notif
 class _FakeAuthRepository implements AuthRepository {
   @override
   Future<User?> restoreSession() async =>
-      const User(id: '1', email: 'user@example.com', fullName: 'Nguyễn Test', systemRole: SystemRole.member);
+      const User(
+        id: '1',
+        email: 'user@example.com',
+        fullName: 'Nguyễn Test',
+        systemRole: SystemRole.member,
+        hasAvatar: false,
+      );
 
   @override
   Future<User> login({required String email, required String password}) async => throw UnimplementedError();

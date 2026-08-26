@@ -43,4 +43,10 @@ class AuthController extends AsyncNotifier<User?> {
     await ref.read(authRepositoryProvider).logout();
     state = const AsyncData(null);
   }
+
+  // Gọi sau khi upload/xoá avatar thành công (users_provider.dart) để phản ánh ngay hasAvatar
+  // mới trên Home/Profile mà không cần gọi lại API xác thực.
+  void updateUser(User user) {
+    state = AsyncData(user);
+  }
 }

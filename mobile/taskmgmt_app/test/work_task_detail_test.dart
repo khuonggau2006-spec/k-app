@@ -98,7 +98,15 @@ class _FakeTaskAssigneeRepository implements TaskAssigneeRepository {
 class _FakeUserRepository implements UserRepository {
   @override
   Future<List<User>> getUsers() async =>
-      [const User(id: 'u1', email: 'nguoidung@example.com', fullName: 'Người Dùng A', systemRole: SystemRole.member)];
+      [
+        const User(
+          id: 'u1',
+          email: 'nguoidung@example.com',
+          fullName: 'Người Dùng A',
+          systemRole: SystemRole.member,
+          hasAvatar: false,
+        ),
+      ];
 }
 
 class _FakeCommentRepository implements CommentRepository {

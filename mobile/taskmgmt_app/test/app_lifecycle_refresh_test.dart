@@ -29,11 +29,11 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<User> login({required String email, required String password}) async =>
-      User(id: '1', email: email, fullName: 'Test User', systemRole: SystemRole.member);
+      User(id: '1', email: email, fullName: 'Test User', systemRole: SystemRole.member, hasAvatar: false);
 
   @override
   Future<User> register({required String email, required String fullName, required String password}) async =>
-      User(id: '1', email: email, fullName: fullName, systemRole: SystemRole.member);
+      User(id: '1', email: email, fullName: fullName, systemRole: SystemRole.member, hasAvatar: false);
 
   @override
   Future<void> logout() async {}

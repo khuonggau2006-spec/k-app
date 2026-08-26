@@ -29,12 +29,12 @@ class _FakeAuthRepository implements AuthRepository {
     if (password != 'correct-password') {
       throw const ApiException('Email hoặc mật khẩu không đúng.');
     }
-    return User(id: '1', email: email, fullName: 'Test User', systemRole: SystemRole.member);
+    return User(id: '1', email: email, fullName: 'Test User', systemRole: SystemRole.member, hasAvatar: false);
   }
 
   @override
   Future<User> register({required String email, required String fullName, required String password}) async =>
-      User(id: '1', email: email, fullName: fullName, systemRole: SystemRole.member);
+      User(id: '1', email: email, fullName: fullName, systemRole: SystemRole.member, hasAvatar: false);
 
   @override
   Future<void> logout() async {}
