@@ -7,6 +7,7 @@ class StoredSession {
     required this.userEmail,
     required this.userFullName,
     required this.userSystemRole,
+    required this.hasAvatar,
   });
 
   final String accessToken;
@@ -16,6 +17,7 @@ class StoredSession {
   final String userEmail;
   final String userFullName;
   final String userSystemRole;
+  final bool hasAvatar;
 
   Map<String, dynamic> toJson() => {
         'accessToken': accessToken,
@@ -25,6 +27,7 @@ class StoredSession {
         'userEmail': userEmail,
         'userFullName': userFullName,
         'userSystemRole': userSystemRole,
+        'hasAvatar': hasAvatar,
       };
 
   factory StoredSession.fromJson(Map<String, dynamic> json) => StoredSession(
@@ -35,5 +38,6 @@ class StoredSession {
         userEmail: json['userEmail'] as String,
         userFullName: json['userFullName'] as String,
         userSystemRole: json['userSystemRole'] as String,
+        hasAvatar: json['hasAvatar'] as bool,
       );
 }

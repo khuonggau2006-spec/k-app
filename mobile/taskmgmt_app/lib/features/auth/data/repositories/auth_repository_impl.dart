@@ -17,15 +17,13 @@ class AuthRepositoryImpl implements AuthRepository {
     if (session == null) return null;
 
     if (session.accessTokenExpiresAtUtc.isAfter(DateTime.now().toUtc())) {
-      // StoredSession chưa lưu hasAvatar (không thuộc phạm vi task này) nên dùng false ở
-      // fast-path này; giá trị đúng sẽ có lại sau lần refresh token / đăng nhập kế tiếp,
-      // hoặc ngay khi AuthController.updateUser được gọi từ luồng avatar.
+      // hasAvatar được đọc thẳng từ StoredSession đã lưu, không cần gọi mạng ở fast-path này.
       return User(
         id: session.userId,
         email: session.userEmail,
         fullName: session.userFullName,
         systemRole: systemRoleFromString(session.userSystemRole),
-        hasAvatar: false,
+        hasAvatar: session.hasAvatar,
       );
     }
 
@@ -75,6 +73,7 @@ class AuthRepositoryImpl implements AuthRepository {
           userEmail: result.user.email,
           userFullName: result.user.fullName,
           userSystemRole: result.user.systemRole,
+          hasAvatar: result.user.hasAvatar,
         ),
       );
 }
