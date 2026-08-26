@@ -22,7 +22,7 @@ public class GetTaskAssigneesQueryHandler(IApplicationDbContext context)
             .Where(a => a.WorkTaskId == request.WorkTaskId)
             .OrderBy(a => a.Role)
             .Select(a => new TaskAssigneeDto(
-                a.Id, a.WorkTaskId, a.UserId, a.User!.FullName, a.User!.Email, a.Role, a.AssignedAtUtc))
+                a.Id, a.WorkTaskId, a.UserId, a.User!.FullName, a.User!.Email, a.User!.AvatarStorageKey != null, a.Role, a.AssignedAtUtc))
             .ToListAsync(cancellationToken);
     }
 }

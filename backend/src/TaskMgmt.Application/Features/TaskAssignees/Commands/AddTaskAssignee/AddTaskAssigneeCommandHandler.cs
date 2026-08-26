@@ -29,6 +29,6 @@ public class AddTaskAssigneeCommandHandler(IApplicationDbContext context, ICurre
         context.TaskAssignees.Add(assignee);
         await context.SaveChangesAsync(cancellationToken);
 
-        return new TaskAssigneeDto(assignee.Id, assignee.WorkTaskId, assignee.UserId, user.FullName, user.Email, assignee.Role, assignee.AssignedAtUtc);
+        return new TaskAssigneeDto(assignee.Id, assignee.WorkTaskId, assignee.UserId, user.FullName, user.Email, user.AvatarStorageKey != null, assignee.Role, assignee.AssignedAtUtc);
     }
 }

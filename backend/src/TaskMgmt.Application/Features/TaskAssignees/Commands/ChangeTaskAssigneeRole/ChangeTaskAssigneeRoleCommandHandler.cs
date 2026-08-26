@@ -32,6 +32,6 @@ public class ChangeTaskAssigneeRoleCommandHandler(IApplicationDbContext context,
         await context.SaveChangesAsync(cancellationToken);
 
         return new TaskAssigneeDto(
-            assignee.Id, assignee.WorkTaskId, assignee.UserId, assignee.User!.FullName, assignee.User!.Email, assignee.Role, assignee.AssignedAtUtc);
+            assignee.Id, assignee.WorkTaskId, assignee.UserId, assignee.User!.FullName, assignee.User!.Email, assignee.User!.AvatarStorageKey != null, assignee.Role, assignee.AssignedAtUtc);
     }
 }

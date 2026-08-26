@@ -8,5 +8,6 @@ public record TaskAssigneeDto(
     Guid UserId,
     string UserFullName,
     string UserEmail,
+    bool UserHasAvatar,
     TaskAssigneeRole Role,
     DateTimeOffset AssignedAtUtc);
