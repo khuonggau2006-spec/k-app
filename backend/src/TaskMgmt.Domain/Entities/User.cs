@@ -10,6 +10,7 @@ public class User : AuditableEntity
     public required string PasswordHash { get; set; }
     public SystemRole SystemRole { get; set; } = SystemRole.Member;
     public bool IsActive { get; set; } = true;
+    public string? AvatarStorageKey { get; set; }
 
     public ICollection<TaskAssignee> TaskAssignments { get; set; } = [];
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
