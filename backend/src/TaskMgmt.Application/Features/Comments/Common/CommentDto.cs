@@ -11,6 +11,7 @@ public record CommentDto(
     Guid? AuthorUserId,
     string AuthorFullName,
     string AuthorEmail,
+    bool AuthorHasAvatar,
     DateTimeOffset CreatedAtUtc,
     List<CommentMentionDto> Mentions)
 {
@@ -22,6 +23,7 @@ public record CommentDto(
         comment.CreatedByUserId,
         comment.Author?.FullName ?? string.Empty,
         comment.Author?.Email ?? string.Empty,
+        comment.Author?.AvatarStorageKey != null,
         comment.CreatedAtUtc,
         comment.Mentions
             .Select(m => new CommentMentionDto(m.MentionedUserId, m.MentionedUser?.FullName ?? string.Empty, m.MentionedUser?.Email ?? string.Empty))
