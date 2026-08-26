@@ -107,6 +107,15 @@ class _FakeUserRepository implements UserRepository {
           hasAvatar: false,
         ),
       ];
+
+  @override
+  Future<Uint8List?> downloadAvatar(String userId) async => null;
+
+  @override
+  Future<User> uploadAvatar({required Uint8List bytes, required String fileName}) => throw UnimplementedError();
+
+  @override
+  Future<User> deleteAvatar() => throw UnimplementedError();
 }
 
 class _FakeCommentRepository implements CommentRepository {
