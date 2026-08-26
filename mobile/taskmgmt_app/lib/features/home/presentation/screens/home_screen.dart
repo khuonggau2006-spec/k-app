@@ -9,6 +9,9 @@ import '../../../locations/presentation/screens/location_list_screen.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../../notifications/presentation/screens/notification_center_screen.dart';
 import '../../../tasks/presentation/screens/task_list_screen.dart';
+import '../../../users/presentation/screens/profile_screen.dart';
+
+import '../../../../shared/widgets/user_avatar.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -55,7 +58,22 @@ class HomeScreen extends ConsumerWidget {
             if (user != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
-                child: Text('Xin chào, ${user.fullName}', style: Theme.of(context).textTheme.bodyLarge),
+                child: GestureDetector(
+                  onTap: () => context.push(ProfileScreen.path),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      UserAvatar(
+                        userId: user.id,
+                        hasAvatar: user.hasAvatar,
+                        fallbackText: user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
+                        radius: 18,
+                      ),
+                      const SizedBox(width: 12),
+                      Text('Xin chào, ${user.fullName}', style: Theme.of(context).textTheme.bodyLarge),
+                    ],
+                  ),
+                ),
               ),
             Expanded(
               child: GridView.count(

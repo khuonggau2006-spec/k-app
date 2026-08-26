@@ -68,6 +68,7 @@ Widget _buildApp() {
       GoRoute(path: '/attendance', builder: (context, state) => const Scaffold(body: Text('Màn Chấm công'))),
       GoRoute(path: '/locations', builder: (context, state) => const Scaffold(body: Text('Màn Vị trí'))),
       GoRoute(path: '/notifications', builder: (context, state) => const Scaffold(body: Text('Màn Thông báo'))),
+      GoRoute(path: '/profile', builder: (context, state) => const Scaffold(body: Text('Màn Hồ sơ'))),
     ],
   );
 
@@ -131,5 +132,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Xin chào'), findsNothing);
+  });
+
+  testWidgets('Tapping the avatar navigates to the profile screen', (tester) async {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(_buildApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(GestureDetector).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Màn Hồ sơ'), findsOneWidget);
   });
 }
