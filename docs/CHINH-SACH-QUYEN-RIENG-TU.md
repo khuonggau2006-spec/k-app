@@ -1,6 +1,6 @@
 # Chính sách quyền riêng tư — TaskMgmt
 
-*Cập nhật lần cuối: 14/08/2026*
+*Cập nhật lần cuối: 27/08/2026*
 
 Tài liệu này áp dụng cho ứng dụng di động **TaskMgmt** (gói `com.taskmgmt.taskmgmt_app`).
 TaskMgmt là công cụ quản lý công việc nhóm nội bộ — tài khoản do quản trị viên tổ chức cấp,
@@ -14,6 +14,7 @@ không mở đăng ký công khai cho người ngoài.
 | Mật khẩu | Chỉ lưu dạng **băm (hash)**, không bao giờ lưu hoặc truyền dạng chữ thường (plaintext) sau khi tạo | Xác thực đăng nhập |
 | Nội dung công việc | Tiêu đề, mô tả, trạng thái, bình luận, lịch sử thay đổi công việc | Chức năng cốt lõi của app |
 | Tệp đính kèm | File người dùng chủ động tải lên gắn với 1 công việc | Chia sẻ tài liệu trong nhóm |
+| Ảnh đại diện | Ảnh người dùng tự chụp hoặc chọn từ thư viện để đặt làm avatar (tuỳ chọn) | Hiển thị danh tính trong nhóm |
 | Token thiết bị (FCM) | Mã định danh thiết bị do Firebase Cloud Messaging cấp | Gửi thông báo đẩy (nhắc hạn, có người nhắc tên, đổi trạng thái công việc...) |
 | Nhật ký kỹ thuật | IP, thời điểm request, lỗi hệ thống (phía máy chủ) | Vận hành, khắc phục sự cố, bảo mật |
 
@@ -21,7 +22,8 @@ không mở đăng ký công khai cho người ngoài.
 - Vị trí GPS/thời gian thực của thiết bị người dùng. Tính năng "Vị trí" trong app chỉ hiển thị
   danh sách địa điểm **cố định do quản trị viên tạo sẵn** (ví dụ: văn phòng, công trường) để gán
   cho công việc — không truy cập cảm biến định vị của điện thoại.
-- Danh bạ, lịch, ảnh/thư viện media (trừ file người dùng tự chọn để đính kèm qua trình chọn file).
+- Danh bạ, lịch, thư viện media nói chung (trừ file đính kèm và ảnh đại diện mà người dùng tự chủ
+  động chọn qua trình chọn ảnh/máy ảnh — app không tự động quét hay truy cập thư viện ảnh).
 - Dữ liệu tài chính, sức khoẻ.
 - Không tích hợp SDK quảng cáo hoặc SDK phân tích hành vi người dùng bên thứ ba (không dùng
   Google Analytics/Firebase Analytics).
@@ -52,6 +54,8 @@ ngoài mục đích vận hành app nêu trên.
 Người dùng có quyền:
 - Xem thông tin công việc, bình luận, lịch sử liên quan đến mình trong app.
 - Đăng xuất để thu hồi phiên đăng nhập trên thiết bị đó.
+- **Tự xoá ảnh đại diện bất kỳ lúc nào**: vào Hồ sơ của tôi → Xoá avatar, ảnh bị xoá vĩnh viễn khỏi
+  hệ thống ngay lập tức, không cần liên hệ.
 - **Yêu cầu xoá tài khoản và dữ liệu cá nhân**: hiện tại app chưa có nút tự xoá tài khoản trong
   ứng dụng. Người dùng gửi yêu cầu qua email liên hệ bên dưới, quản trị viên sẽ xử lý xoá dữ liệu
   trong vòng 30 ngày, trừ dữ liệu bắt buộc phải giữ lại theo quy định pháp luật hoặc nhu cầu vận

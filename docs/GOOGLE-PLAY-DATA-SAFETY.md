@@ -2,8 +2,9 @@
 
 Áp dụng cho app TaskMgmt (`com.taskmgmt.taskmgmt_app`). Play Console form chỉ có tiếng Anh nên
 bảng dưới giữ nguyên nhãn gốc, kèm giải thích tiếng Việt và giá trị nên chọn. Dựa trên rà soát
-thực tế code app tại thời điểm viết (14/08/2026) — nếu sau này thêm SDK/tính năng mới (quảng cáo,
-analytics, chụp ảnh trực tiếp...) phải cập nhật lại form này trước khi nộp bản build mới.
+thực tế code app tại thời điểm viết (14/08/2026, cập nhật 27/08/2026 khi thêm tính năng ảnh đại
+diện) — nếu sau này thêm SDK/tính năng mới (quảng cáo, analytics...) phải cập nhật lại form này
+trước khi nộp bản build mới.
 
 Vào: Play Console → app → **Policy → App content → Data safety → Manage**.
 
@@ -17,8 +18,8 @@ Vào: Play Console → app → **Policy → App content → Data safety → Mana
 
 ## Bước 2 — Data types
 
-Chỉ tick đúng các mục sau, các mục khác (Location, Financial info, Health and fitness, Photos and
-videos, Audio files, Contacts, Calendar, Web browsing, Search history) để **trống/No**.
+Chỉ tick đúng các mục sau, các mục khác (Location, Financial info, Health and fitness, Audio
+files, Contacts, Calendar, Web browsing, Search history) để **trống/No**.
 
 ### Personal info
 - **Name**: Collected ✅ / Shared ❌ / Optional: **No** (bắt buộc) / Purpose: **App functionality, Account management**
@@ -26,6 +27,11 @@ videos, Audio files, Contacts, Calendar, Web browsing, Search history) để **t
 
 ### Files and docs
 - **Files and docs**: Collected ✅ / Shared ❌ / Optional: **Yes** (người dùng chọn có đính kèm hay không) / Purpose: **App functionality**
+
+### Photos and videos
+- **Photos**: Collected ✅ / Shared ❌ / Optional: **Yes** (người dùng tự chọn có đặt ảnh đại diện
+  hay không; ảnh chụp từ máy ảnh hoặc chọn từ thư viện, chỉ dùng làm ảnh đại diện — không dùng cho
+  mục đích nào khác) / Purpose: **App functionality, Account management**
 
 ### App activity
 - **Other user-generated content** (tiêu đề/mô tả công việc, bình luận): Collected ✅ / Shared ❌ / Optional: **No** / Purpose: **App functionality**
@@ -44,6 +50,10 @@ Với **Name** và **Email address**:
 - "Is this data required or optional?" → **Required**
 
 Với **Files and docs**:
+- "Is this data processed ephemerally?" → **No**
+- "Is this data required or optional?" → **Optional**
+
+Với **Photos**:
 - "Is this data processed ephemerally?" → **No**
 - "Is this data required or optional?" → **Optional**
 
@@ -67,10 +77,13 @@ khi điền vào Play Console:
 
 ## Ghi chú quan trọng
 
-- "Yêu cầu xoá dữ liệu" hiện tại **xử lý thủ công** (chưa có nút tự xoá tài khoản trong app/API).
-  Khi khai "Yes" ở Play Console, đội vận hành phải thực sự xử lý được yêu cầu qua email trong
-  vòng thời gian hợp lý — đây là cam kết vận hành, không phải tính năng có sẵn trong code.
-- Nếu sau này thêm tính năng mới có truy cập dữ liệu nhạy cảm hơn (camera, vị trí GPS thời gian
-  thực, danh bạ...), **phải cập nhật lại cả Data safety form và Privacy Policy trước khi phát
+- "Yêu cầu xoá dữ liệu" nhìn chung hiện **xử lý thủ công** (chưa có nút tự xoá toàn bộ tài khoản
+  trong app/API). Khi khai "Yes" ở Play Console, đội vận hành phải thực sự xử lý được yêu cầu qua
+  email trong vòng thời gian hợp lý — đây là cam kết vận hành, không phải tính năng có sẵn trong
+  code. Riêng **ảnh đại diện (Photos)** là ngoại lệ: người dùng tự xoá ngay trong app (màn "Hồ sơ
+  của tôi" → nút "Xoá avatar"), xoá vĩnh viễn khỏi storage ngay lập tức, không cần liên hệ.
+- Nếu sau này thêm tính năng mới có truy cập dữ liệu nhạy cảm hơn (vị trí GPS thời gian thực,
+  danh bạ, micro...), **phải cập nhật lại cả Data safety form và Privacy Policy trước khi phát
   hành bản cập nhật đó** — đây là yêu cầu bắt buộc của Google Play, không cập nhật có thể bị gỡ
-  app.
+  app. (Mục Photos ở trên đã được thêm theo đúng quy trình này khi tính năng ảnh đại diện phát
+  hành ngày 27/08/2026.)
