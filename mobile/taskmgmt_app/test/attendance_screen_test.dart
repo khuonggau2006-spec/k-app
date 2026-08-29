@@ -63,6 +63,24 @@ void main() {
     expect(find.textContaining('Văn phòng chính'), findsOneWidget);
   });
 
+  testWidgets('Shows check-in time without "tại" when no location matched', (tester) async {
+    final repo = _FakeAttendanceRepository(
+      today: AttendanceRecord(
+        id: 'a1',
+        workDate: DateTime(2026, 8, 24),
+        checkInAtUtc: DateTime.utc(2026, 8, 24, 1, 30),
+        checkInLocationName: null,
+        checkOutAtUtc: null,
+        checkOutLocationName: null,
+      ),
+    );
+    await tester.pumpWidget(_buildScreen(repo));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Đã check-in lúc'), findsOneWidget);
+    expect(find.textContaining(' tại '), findsNothing);
+  });
+
   testWidgets('Switching to Lịch sử tab shows history rows and stats', (tester) async {
     final repo = _FakeAttendanceRepository(
       history: [

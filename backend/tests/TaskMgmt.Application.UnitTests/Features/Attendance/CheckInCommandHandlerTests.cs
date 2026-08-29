@@ -1,4 +1,3 @@
-using TaskMgmt.Application.Common.Exceptions;
 using TaskMgmt.Application.Features.Attendance.Commands.CheckIn;
 using TaskMgmt.Application.UnitTests.Common;
 using TaskMgmt.Domain.Entities;
@@ -32,7 +31,7 @@ public class CheckInCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_OutsideEveryLocationRadius_ThrowsValidationException()
+    public async Task Handle_FarFromAnyLocation_StillSucceedsWithNullCheckInLocation()
     {
         using var context = TestDbContextFactory.Create();
         var user = TestDataFactory.CreateUser();
@@ -45,9 +44,15 @@ public class CheckInCommandHandlerTests
         var currentUser = new FakeCurrentUserService(user.Id, SystemRole.Member);
         var handler = new CheckInCommandHandler(context, currentUser);
 
-        // Cách location ~11km (0.1 độ vĩ độ), vượt xa bán kính 100m cho phép.
-        await Assert.ThrowsAsync<ValidationException>(
-            () => handler.Handle(new CheckInCommand(location.Latitude + 0.1, location.Longitude), default));
+        // Cách location ~11km (0.1 độ vĩ độ), vượt xa bán kính 100m - không còn chặn, chỉ không
+        // gán được tên vị trí (đúng hành vi mới: ai cũng check-in được tại vị trí của mình).
+        var result = await handler.Handle(new CheckInCommand(location.Latitude + 0.1, location.Longitude), default);
+
+        Assert.NotNull(result.CheckInAtUtc);
+        Assert.Null(result.CheckInLocationName);
+        var saved = await context.AttendanceRecords.FindAsync(result.Id);
+        Assert.NotNull(saved);
+        Assert.Null(saved!.CheckInLocationId);
     }
 
     [Fact]
@@ -65,8 +70,10 @@ public class CheckInCommandHandlerTests
         var currentUser = new FakeCurrentUserService(user.Id, SystemRole.Member);
         var handler = new CheckInCommandHandler(context, currentUser);
 
-        await Assert.ThrowsAsync<ValidationException>(
-            () => handler.Handle(new CheckInCommand(location.Latitude, location.Longitude), default));
+        var result = await handler.Handle(new CheckInCommand(location.Latitude, location.Longitude), default);
+
+        Assert.NotNull(result.CheckInAtUtc);
+        Assert.Null(result.CheckInLocationName);
     }
 
     [Fact]

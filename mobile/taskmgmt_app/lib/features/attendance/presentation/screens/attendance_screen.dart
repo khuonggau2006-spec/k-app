@@ -15,7 +15,7 @@ class LocationAccessException implements Exception {
 }
 
 String attendanceErrorMessage(Object error, String fallback) {
-  if (error is ApiException) return error.message;
+  if (error is ApiException) return error.allMessages.join('\n');
   if (error is LocationAccessException) return error.message;
   return fallback;
 }
@@ -139,7 +139,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     if (today == null || !today.isCheckedIn) {
       text = 'Chưa check-in hôm nay.';
     } else if (!today.isCheckedOut) {
-      text = 'Đã check-in lúc ${format.format(today.checkInAtUtc!.toLocal())} tại ${today.checkInLocationName}.';
+      final locationSuffix = today.checkInLocationName != null ? ' tại ${today.checkInLocationName}' : '';
+      text = 'Đã check-in lúc ${format.format(today.checkInAtUtc!.toLocal())}$locationSuffix.';
     } else {
       text = 'Hoàn thành: ${format.format(today.checkInAtUtc!.toLocal())} → '
           '${format.format(today.checkOutAtUtc!.toLocal())}';
