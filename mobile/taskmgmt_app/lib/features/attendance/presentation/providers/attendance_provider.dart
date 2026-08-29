@@ -23,6 +23,7 @@ class TodayAttendanceController extends AsyncNotifier<AttendanceRecord?> {
     if (state.hasError) {
       throw state.error!;
     }
+    _invalidateCurrentMonth();
   }
 
   Future<void> checkOut({required double latitude, required double longitude}) async {
@@ -32,6 +33,18 @@ class TodayAttendanceController extends AsyncNotifier<AttendanceRecord?> {
     if (state.hasError) {
       throw state.error!;
     }
+    _invalidateCurrentMonth();
+  }
+
+  // Check-in/check-out chỉ cập nhật state của chính provider này - tab Lịch sử (đọc qua
+  // attendanceHistoryProvider/attendanceStatsProvider, cache riêng theo tháng) không tự biết dữ
+  // liệu vừa đổi nếu đã được mở/fetch từ trước lúc check-in/out. Check-in/out luôn thuộc về
+  // "hôm nay" nên chỉ cần invalidate đúng tháng hiện tại.
+  void _invalidateCurrentMonth() {
+    final now = DateTime.now();
+    final currentMonth = (year: now.year, month: now.month);
+    ref.invalidate(attendanceHistoryProvider(currentMonth));
+    ref.invalidate(attendanceStatsProvider(currentMonth));
   }
 }
 

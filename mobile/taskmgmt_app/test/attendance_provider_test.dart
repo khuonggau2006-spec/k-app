@@ -45,8 +45,10 @@ class _FakeAttendanceRepository implements AttendanceRepository {
       today == null ? [] : [today!];
 
   @override
-  Future<AttendanceStats> getStats({required int year, required int month}) async =>
-      const AttendanceStats(daysCheckedIn: 1, totalHoursWorked: 8);
+  Future<AttendanceStats> getStats({required int year, required int month}) async {
+    if (today == null) return const AttendanceStats(daysCheckedIn: 0, totalHoursWorked: 0);
+    return AttendanceStats(daysCheckedIn: 1, totalHoursWorked: today!.isCheckedOut ? 8 : 0);
+  }
 }
 
 ProviderContainer _buildContainer(_FakeAttendanceRepository repo) => ProviderContainer(
@@ -100,9 +102,45 @@ void main() {
     expect(state?.isCheckedOut, isTrue);
   });
 
-  test('attendanceStatsProvider reads stats for the requested month', () async {
-    final container = _buildContainer(_FakeAttendanceRepository());
+  test('checkIn invalidates attendanceHistoryProvider so Lịch sử tab reflects the new record', () async {
+    final repo = _FakeAttendanceRepository();
+    final container = _buildContainer(repo);
     addTearDown(container.dispose);
+    final currentMonth = (year: DateTime.now().year, month: DateTime.now().month);
+
+    // Giả lập đúng luồng thật: mở tab Lịch sử trước (rỗng vì chưa check-in), rồi mới check-in.
+    final before = await container.read(attendanceHistoryProvider(currentMonth).future);
+    expect(before, isEmpty);
+
+    await container.read(todayAttendanceProvider.notifier).checkIn(latitude: 10, longitude: 106);
+    final after = await container.read(attendanceHistoryProvider(currentMonth).future);
+
+    expect(after, hasLength(1));
+  });
+
+  test('checkOut invalidates attendanceStatsProvider so tổng giờ làm cập nhật ngay', () async {
+    final repo = _FakeAttendanceRepository();
+    final container = _buildContainer(repo);
+    addTearDown(container.dispose);
+    final currentMonth = (year: DateTime.now().year, month: DateTime.now().month);
+    await container.read(todayAttendanceProvider.notifier).checkIn(latitude: 10, longitude: 106);
+
+    // Đọc trước khi check-out để provider stats bị cache lại (giống UI đã mở tab Lịch sử trước đó).
+    final before = await container.read(attendanceStatsProvider(currentMonth).future);
+    expect(before.totalHoursWorked, 0);
+
+    await container.read(todayAttendanceProvider.notifier).checkOut(latitude: 10, longitude: 106);
+    final after = await container.read(attendanceStatsProvider(currentMonth).future);
+
+    expect(after.totalHoursWorked, 8);
+  });
+
+  test('attendanceStatsProvider reads stats for the requested month', () async {
+    final repo = _FakeAttendanceRepository();
+    final container = _buildContainer(repo);
+    addTearDown(container.dispose);
+    await container.read(todayAttendanceProvider.notifier).checkIn(latitude: 10, longitude: 106);
+    await container.read(todayAttendanceProvider.notifier).checkOut(latitude: 10, longitude: 106);
 
     final stats = await container.read(attendanceStatsProvider((year: 2026, month: 8)).future);
 
